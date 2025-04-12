@@ -17,11 +17,11 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
+
 #ifndef WIFI_PHY_STANDARD_H
 #define WIFI_PHY_STANDARD_H
 
 namespace ns3 {
-
 
 /**
  * \ingroup wifi
@@ -49,6 +49,8 @@ enum WifiPhyStandard
   WIFI_PHY_STANDARD_80211n_2_4GHZ,
   /** HT OFDM PHY for the 5 GHz band (clause 20) */
   WIFI_PHY_STANDARD_80211n_5GHZ,
+  /** VHT OFDM PHY (clause 22) */
+  WIFI_PHY_STANDARD_80211ac,
   /** ah support, Clause 24 */
   WIFI_PHY_STANDARD_80211ah
 };

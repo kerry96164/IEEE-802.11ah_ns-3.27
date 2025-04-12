@@ -535,4 +535,11 @@ operator<< (std::ostream& os, TcpHeader const & tc)
   return os;
 }
 
+std::ostream&
+operator<< (std::ostream& os, TcpHeader const & tc)
+{
+  tc.Print (os);
+  return os;
+}
+
 } // namespace ns3

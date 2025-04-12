@@ -40,7 +40,7 @@
 #include "ipv6-l3-protocol.h"
 #include "ipv6-routing-protocol.h"
 #include "tcp-socket-factory-impl.h"
-#include "tcp-socket-base.h"
+#include "tcp-newreno.h"
 #include "rtt-estimator.h"
 
 #include <vector>
@@ -57,7 +57,7 @@ NS_OBJECT_ENSURE_REGISTERED (TcpL4Protocol);
 
 #undef NS_LOG_APPEND_CONTEXT
 #define NS_LOG_APPEND_CONTEXT                                   \
-  if (m_node) { std::clog << " [node " << m_node->GetId () << "] "; }
+  if (m_node) { std::clog << Simulator::Now ().GetSeconds () << " [node " << m_node->GetId () << "] "; }
 
 /* see http://www.iana.org/assignments/protocol-numbers */
 const uint8_t TcpL4Protocol::PROT_NUMBER = 6;
@@ -77,7 +77,7 @@ TcpL4Protocol::GetTypeId (void)
     .AddAttribute ("SocketType",
                    "Socket type of TCP objects.",
                    TypeIdValue (TcpNewReno::GetTypeId ()),
-                   MakeTypeIdAccessor (&TcpL4Protocol::m_congestionTypeId),
+                   MakeTypeIdAccessor (&TcpL4Protocol::m_socketTypeId),
                    MakeTypeIdChecker ())
     .AddAttribute ("SocketList", "The list of sockets associated to this protocol.",
                    ObjectVectorValue (),
@@ -96,23 +96,21 @@ TcpL4Protocol::TcpL4Protocol ()
 
 TcpL4Protocol::~TcpL4Protocol ()
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION_NOARGS ();
 }
 
 void
 TcpL4Protocol::SetNode (Ptr<Node> node)
 {
-  NS_LOG_FUNCTION (this);
   m_node = node;
 }
 
 void
 TcpL4Protocol::NotifyNewAggregate ()
 {
-  NS_LOG_FUNCTION (this);
   Ptr<Node> node = this->GetObject<Node> ();
   Ptr<Ipv4> ipv4 = this->GetObject<Ipv4> ();
-  Ptr<Ipv6> ipv6 = node->GetObject<Ipv6> ();
+  Ptr<Ipv6L3Protocol> ipv6 = node->GetObject<Ipv6L3Protocol> ();
 
   if (m_node == 0)
     {
@@ -138,7 +136,7 @@ TcpL4Protocol::NotifyNewAggregate ()
   if (ipv6 != 0 && m_downTarget6.IsNull ())
     {
       ipv6->Insert (this);
-      this->SetDownTarget6 (MakeCallback (&Ipv6::Send, ipv6));
+      this->SetDownTarget6 (MakeCallback (&Ipv6L3Protocol::Send, ipv6));
     }
   IpL4Protocol::NotifyNewAggregate ();
 }
@@ -152,7 +150,7 @@ TcpL4Protocol::GetProtocolNumber (void) const
 void
 TcpL4Protocol::DoDispose (void)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION_NOARGS ();
   m_sockets.clear ();
 
   if (m_endPoints != 0)
@@ -174,23 +172,18 @@ TcpL4Protocol::DoDispose (void)
 }
 
 Ptr<Socket>
-TcpL4Protocol::CreateSocket (TypeId congestionTypeId)
+TcpL4Protocol::CreateSocket (TypeId socketTypeId)
 {
-  NS_LOG_FUNCTION (this << congestionTypeId.GetName ());
+  NS_LOG_FUNCTION_NOARGS ();
   ObjectFactory rttFactory;
-  ObjectFactory congestionAlgorithmFactory;
+  ObjectFactory socketFactory;
   rttFactory.SetTypeId (m_rttTypeId);
-  congestionAlgorithmFactory.SetTypeId (congestionTypeId);
-
+  socketFactory.SetTypeId (socketTypeId);
   Ptr<RttEstimator> rtt = rttFactory.Create<RttEstimator> ();
-  Ptr<TcpSocketBase> socket = CreateObject<TcpSocketBase> ();
-  Ptr<TcpCongestionOps> algo = congestionAlgorithmFactory.Create<TcpCongestionOps> ();
-
+  Ptr<TcpSocketBase> socket = socketFactory.Create<TcpSocketBase> ();
   socket->SetNode (m_node);
   socket->SetTcp (this);
   socket->SetRtt (rtt);
-  socket->SetCongestionControlAlgorithm (algo);
-
   m_sockets.push_back (socket);
   return socket;
 }
@@ -198,7 +191,7 @@ TcpL4Protocol::CreateSocket (TypeId congestionTypeId)
 Ptr<Socket>
 TcpL4Protocol::CreateSocket (void)
 {
-  return CreateSocket (m_congestionTypeId);
+  return CreateSocket (m_socketTypeId);
 }
 
 Ipv4EndPoint *
@@ -347,7 +340,6 @@ enum IpL4Protocol::RxStatus
 TcpL4Protocol::PacketReceived (Ptr<Packet> packet, TcpHeader &incomingTcpHeader,
                                const Address &source, const Address &destination)
 {
-  NS_LOG_FUNCTION (this << packet << incomingTcpHeader << source << destination);
 
   if (Node::ChecksumEnabled ())
     {
@@ -377,8 +369,6 @@ TcpL4Protocol::NoEndPointsFound (const TcpHeader &incomingHeader,
                                  const Address &incomingSAddr,
                                  const Address &incomingDAddr)
 {
-  NS_LOG_FUNCTION (this << incomingHeader << incomingSAddr << incomingDAddr);
-
   if (!(incomingHeader.GetFlags () & TcpHeader::RST))
     {
       // build a RST packet and send
@@ -428,6 +418,8 @@ TcpL4Protocol::Receive (Ptr<Packet> packet,
       return checksumControl;
     }
 
+  NS_LOG_LOGIC ("TcpL4Protocol " << this << " received a packet");
+
   Ipv4EndPointDemux::EndPoints endPoints;
   endPoints = m_endPoints->Lookup (incomingIpHeader.GetDestination (),
                                    incomingTcpHeader.GetDestinationPort (),
@@ -451,8 +443,7 @@ TcpL4Protocol::Receive (Ptr<Packet> packet,
           return (this->Receive (packet, ipv6Header, fakeInterface));
         }
 
-      NS_LOG_LOGIC ("TcpL4Protocol " << this << " received a packet but"
-                    " no endpoints matched." <<
+      NS_LOG_LOGIC ("No endpoints matched on TcpL4Protocol "<< this <<
                     " destination IP: " << incomingIpHeader.GetDestination () <<
                     " destination port: "<< incomingTcpHeader.GetDestinationPort () <<
                     " source IP: " << incomingIpHeader.GetSource () <<
@@ -466,8 +457,7 @@ TcpL4Protocol::Receive (Ptr<Packet> packet,
     }
 
   NS_ASSERT_MSG (endPoints.size () == 1, "Demux returned more than one endpoint");
-  NS_LOG_LOGIC ("TcpL4Protocol " << this << " received a packet and"
-                " now forwarding it up to endpoint/socket");
+  NS_LOG_LOGIC ("TcpL4Protocol " << this << " forwarding up to endpoint/socket");
 
   (*endPoints.begin ())->ForwardUp (packet, incomingIpHeader,
                                     incomingTcpHeader.GetSourcePort (),
@@ -500,6 +490,7 @@ TcpL4Protocol::Receive (Ptr<Packet> packet,
       return checksumControl;
     }
 
+  NS_LOG_LOGIC ("TcpL4Protocol " << this << " received a packet");
   Ipv6EndPointDemux::EndPoints endPoints =
     m_endPoints6->Lookup (incomingIpHeader.GetDestinationAddress (),
                           incomingTcpHeader.GetDestinationPort (),
@@ -507,8 +498,7 @@ TcpL4Protocol::Receive (Ptr<Packet> packet,
                           incomingTcpHeader.GetSourcePort (), interface);
   if (endPoints.empty ())
     {
-      NS_LOG_LOGIC ("TcpL4Protocol " << this << " received a packet but"
-                    " no endpoints matched." <<
+      NS_LOG_LOGIC ("No endpoints matched on TcpL4Protocol "<< this <<
                     " destination IP: " << incomingIpHeader.GetDestinationAddress () <<
                     " destination port: "<< incomingTcpHeader.GetDestinationPort () <<
                     " source IP: " << incomingIpHeader.GetSourceAddress () <<
@@ -521,8 +511,7 @@ TcpL4Protocol::Receive (Ptr<Packet> packet,
     }
 
   NS_ASSERT_MSG (endPoints.size () == 1, "Demux returned more than one endpoint");
-  NS_LOG_LOGIC ("TcpL4Protocol " << this << " received a packet and"
-                " now forwarding it up to endpoint/socket");
+  NS_LOG_LOGIC ("TcpL4Protocol " << this << " forwarding up to endpoint/socket");
 
   (*endPoints.begin ())->ForwardUp (packet, incomingIpHeader,
                                     incomingTcpHeader.GetSourcePort (), interface);
@@ -535,12 +524,12 @@ TcpL4Protocol::SendPacketV4 (Ptr<Packet> packet, const TcpHeader &outgoing,
                              const Ipv4Address &saddr, const Ipv4Address &daddr,
                              Ptr<NetDevice> oif) const
 {
-  NS_LOG_FUNCTION (this << packet << saddr << daddr << oif);
   NS_LOG_LOGIC ("TcpL4Protocol " << this
                                  << " sending seq " << outgoing.GetSequenceNumber ()
                                  << " ack " << outgoing.GetAckNumber ()
                                  << " flags " << TcpHeader::FlagsToString (outgoing.GetFlags ())
                                  << " data size " << packet->GetSize ());
+  NS_LOG_FUNCTION (this << packet << saddr << daddr << oif);
   // XXX outgoingHeader cannot be logged
 
   TcpHeader outgoingHeader = outgoing;
@@ -586,12 +575,12 @@ TcpL4Protocol::SendPacketV6 (Ptr<Packet> packet, const TcpHeader &outgoing,
                              const Ipv6Address &saddr, const Ipv6Address &daddr,
                              Ptr<NetDevice> oif) const
 {
-  NS_LOG_FUNCTION (this << packet << saddr << daddr << oif);
   NS_LOG_LOGIC ("TcpL4Protocol " << this
                                  << " sending seq " << outgoing.GetSequenceNumber ()
                                  << " ack " << outgoing.GetAckNumber ()
                                  << " flags " << TcpHeader::FlagsToString (outgoing.GetFlags ())
                                  << " data size " << packet->GetSize ());
+  NS_LOG_FUNCTION (this << packet << saddr << daddr << oif);
   // XXX outgoingHeader cannot be logged
 
   if (daddr.IsIpv4MappedAddress ())
@@ -640,7 +629,6 @@ TcpL4Protocol::SendPacket (Ptr<Packet> pkt, const TcpHeader &outgoing,
                            const Address &saddr, const Address &daddr,
                            Ptr<NetDevice> oif) const
 {
-  NS_LOG_FUNCTION (this << pkt << outgoing << saddr << daddr << oif);
   if (Ipv4Address::IsMatchingType (saddr))
     {
       NS_ASSERT (Ipv4Address::IsMatchingType (daddr));
@@ -684,7 +672,6 @@ TcpL4Protocol::SendPacket (Ptr<Packet> pkt, const TcpHeader &outgoing,
 void
 TcpL4Protocol::AddSocket (Ptr<TcpSocketBase> socket)
 {
-  NS_LOG_FUNCTION (this << socket);
   std::vector<Ptr<TcpSocketBase> >::iterator it = m_sockets.begin ();
 
   while (it != m_sockets.end ())
@@ -703,7 +690,6 @@ TcpL4Protocol::AddSocket (Ptr<TcpSocketBase> socket)
 bool
 TcpL4Protocol::RemoveSocket (Ptr<TcpSocketBase> socket)
 {
-  NS_LOG_FUNCTION (this << socket);
   std::vector<Ptr<TcpSocketBase> >::iterator it = m_sockets.begin ();
 
   while (it != m_sockets.end ())

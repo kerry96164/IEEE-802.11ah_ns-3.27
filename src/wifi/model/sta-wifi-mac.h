@@ -212,6 +212,12 @@ private:
    * \return the HT capability that we support
    */
   HtCapabilities GetHtCapabilities (void) const;
+  /**
+   * Return the VHT capability of the current AP.
+   *
+   * \return the VHT capability that we support
+   */
+  VhtCapabilities GetVhtCapabilities (void) const;
   S1gCapabilities GetS1gCapabilities (void) const;
   /**
    * Set the AID.

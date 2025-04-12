@@ -16,8 +16,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
- * Author: Mirko Banchi <mk.banchi@gmail.com>
+ * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ *          Mirko Banchi <mk.banchi@gmail.com>
  */
 
 #ifndef MGT_HEADERS_H
@@ -31,15 +31,15 @@
 #include "supported-rates.h"
 #include "ssid.h"
 #include "ht-capabilities.h"
+#include "vht-capabilities.h"
 #include "s1g-capabilities.h"
 
 namespace ns3 {
 
 /**
  * \ingroup wifi
- * Implement the header for management frames of type association request.
+ * Implement the header for management frames of type disassociation request.
  */
-
 class MgtDisAssocRequestHeader : public Header
 {
 public:
@@ -70,7 +70,19 @@ public:
      * \param htcapabilities HT capabilities
      */
     void SetHtCapabilities (HtCapabilities htcapabilities);
-    
+    /**
+     * Set the VHT capabilities.
+     *
+     * \param vhtcapabilities VHT capabilities
+     */
+    void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
+    /**
+     * Return the VHT capabilities.
+     *
+     * \return VHT capabilities
+     */
+    VhtCapabilities GetVhtCapabilities (void) const;
+
     /**
      * Return the HT capabilities.
      *
@@ -115,11 +127,13 @@ private:
     SupportedRates m_rates;             //!< List of supported rates
     CapabilityInformation m_capability; //!< Capability information
     HtCapabilities m_htCapability;      //!< HT capabilities
+    VhtCapabilities m_vhtCapability;    //!< VHT capabilities
     uint16_t m_listenInterval;
+
     S1gCapabilities m_s1gCapability;
-    
-    
 };
+
+
 /**
  * \ingroup wifi
  * Implement the header for management frames of type association request.
@@ -154,7 +168,19 @@ public:
    * \param htcapabilities HT capabilities
    */
   void SetHtCapabilities (HtCapabilities htcapabilities);
-
+  /**
+    * Set the VHT capabilities.
+    *
+    * \param vhtcapabilities VHT capabilities
+    */
+   void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
+   /**
+   * Return the VHT capabilities.
+   *
+   * \return VHT capabilities
+   */
+   VhtCapabilities GetVhtCapabilities (void) const;
+  
   /**
    * Return the HT capabilities.
    *
@@ -200,6 +226,7 @@ private:
   SupportedRates m_rates;             //!< List of supported rates
   CapabilityInformation m_capability; //!< Capability information
   HtCapabilities m_htCapability;      //!< HT capabilities
+  VhtCapabilities m_vhtCapability;    //!< VHT capabilities
   uint16_t m_listenInterval;
    
   S1gCapabilities m_s1gCapability;
@@ -234,7 +261,18 @@ public:
    * \return HT capabilities
    */
   HtCapabilities GetHtCapabilities (void) const;
-
+  /**
+    * Set the VHT capabilities.
+    *
+    * \param vhtcapabilities VHT capabilities
+    */
+   void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
+   /**
+   * Return the VHT capabilities.
+   *
+   * \return VHT capabilities
+   */
+   VhtCapabilities GetVhtCapabilities (void) const;
   /**
    * Set the HT capabilities.
    *
@@ -287,6 +325,7 @@ private:
   StatusCode m_code;                  //!< Status code
   uint16_t m_aid;
   HtCapabilities m_htCapability;      //!< HT capabilities
+  VhtCapabilities m_vhtCapability;    //!< VHT capabilities
   S1gCapabilities m_s1gCapability;
 };
 
@@ -330,6 +369,18 @@ public:
    * \return HT capabilities
    */
   HtCapabilities GetHtCapabilities (void) const;
+  /**
+   * Set the VHT capabilities.
+   *
+   * \param vhtcapabilities VHT capabilities
+   */
+  void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
+  /**
+  * Return the VHT capabilities.
+  *
+  * \return VHT capabilities
+  */
+  VhtCapabilities GetVhtCapabilities (void) const;
 
   /**
    * Set the HT capabilities.
@@ -351,9 +402,10 @@ public:
 
 
 private:
-  Ssid m_ssid;                   //!< Service Set ID (SSID)
-  SupportedRates m_rates;        //!< List of supported rates
-  HtCapabilities m_htCapability; //!< HT capabilities
+  Ssid m_ssid;                      //!< Service Set ID (SSID)
+  SupportedRates m_rates;           //!< List of supported rates
+  HtCapabilities m_htCapability;    //!< HT capabilities
+  VhtCapabilities m_vhtCapability;  //!< VHT capabilities
 };
 
 
@@ -391,7 +443,18 @@ public:
    * \return HT capabilities
    */
   HtCapabilities GetHtCapabilities (void) const;
-
+  /**
+   * Set the VHT capabilities.
+   *
+   * \param vhtcapabilities VHT capabilities
+   */
+  void SetVhtCapabilities (VhtCapabilities vhtcapabilities);
+  /**
+  * Return the VHT capabilities.
+  *
+  * \return VHT capabilities
+  */
+  VhtCapabilities GetVhtCapabilities (void) const;
   /**
    * Set the HT capabilities.
    *
@@ -442,6 +505,7 @@ private:
   SupportedRates m_rates;             //!< List of supported rates
   CapabilityInformation m_capability; //!< Capability information
   HtCapabilities m_htCapability;      //!< HT capabilities
+  VhtCapabilities m_vhtCapability;    //!< VHT capabilities
 };
 
 
@@ -580,6 +644,8 @@ public:
 
 
 private:
+  std::string CategoryValueToString (CategoryValue value) const;
+  std::string SelfProtectedActionValueToString (SelfProtectedActionValue value) const;
   uint8_t m_category; //!< Category of the action
   uint8_t m_actionValue; //!< Action value
 };
@@ -680,6 +746,7 @@ public:
    * \return true is A-MSDU is supported, false otherwise
    */
   bool IsAmsduSupported (void) const;
+
 
 private:
   /**

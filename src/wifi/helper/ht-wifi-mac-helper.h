@@ -38,7 +38,7 @@ class HtWifiMacHelper : public QosWifiMacHelper
 {
 public:
   /**
-   * Create a QosWifiMacHelper that is used to make life easier when working
+   * Create a HtWifiMacHelper that is used to make life easier when working
    * with Wifi devices using a QOS MAC layer.
    */
   HtWifiMacHelper ();

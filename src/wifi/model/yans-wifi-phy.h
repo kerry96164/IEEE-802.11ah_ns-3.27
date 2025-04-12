@@ -17,6 +17,7 @@
  *
  * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  *          Ghada Badawy <gbadawy@gmail.com>
+ *          Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
 #ifndef YANS_WIFI_PHY_H
@@ -41,6 +42,7 @@
 namespace ns3 {
     
 #define S1G_PHY 195
+#define VHT_PHY 126
 #define HT_PHY 127
 
 class YansWifiChannel;
@@ -106,14 +108,15 @@ public:
    * \param rxPowerDbm the receive power in dBm
    * \param txVector the TXVECTOR of the arriving packet
    * \param preamble the preamble of the arriving packet
-   * \param packetType The type of the received packet (values: 0 not an A-MPDU, 1 corresponds to any packets in an A-MPDU except the last one, 2 is the last packet in an A-MPDU)
+   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
+   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
    * \param rxDuration the duration needed for the reception of the packet
    */
   void StartReceivePreambleAndHeader (Ptr<Packet> packet,
                                       double rxPowerDbm,
                                       WifiTxVector txVector,
                                       WifiPreamble preamble,
-                                      uint8_t packetType,
+                                      struct mpduInfo aMpdu,
                                       Time rxDuration);
   /**
    * Starting receiving the payload of a packet (i.e. the first bit of the packet has arrived).
@@ -121,13 +124,14 @@ public:
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
    * \param preamble the preamble of the arriving packet
-   * \param packetType The type of the received packet (values: 0 not an A-MPDU, 1 corresponds to any packets in an A-MPDU except the last one, 2 is the last packet in an A-MPDU)
+   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
+   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
    * \param event the corresponding event of the first time the packet arrives
    */
   void StartReceivePacket (Ptr<Packet> packet,
                            WifiTxVector txVector,
                            WifiPreamble preamble,
-                           uint8_t packetType,
+                           struct mpduInfo aMpdu,
                            Ptr<InterferenceHelper::Event> event);
 
   /**
@@ -278,7 +282,7 @@ public:
 
   virtual void SetReceiveOkCallback (WifiPhy::RxOkCallback callback);
   virtual void SetReceiveErrorCallback (WifiPhy::RxErrorCallback callback);
-  virtual void SendPacket (Ptr<const Packet> packet, WifiTxVector txvector, enum WifiPreamble preamble, uint8_t packetType);
+  virtual void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, enum WifiPreamble preamble, uint8_t packetType, uint32_t mpduReferenceNumber);
   virtual void RegisterListener (WifiPhyListener *listener);
   virtual void UnregisterListener (WifiPhyListener *listener);
   virtual void SetSleepMode (void);
@@ -296,7 +300,7 @@ public:
   virtual uint32_t GetNModes (void) const;
   virtual WifiMode GetMode (uint32_t mode) const;
   virtual bool IsModeSupported (WifiMode mode) const;
-  virtual bool IsMcsSupported (WifiMode mode);
+  virtual bool IsMcsSupported (WifiMode mcs);
   virtual double CalculateSnr (WifiMode txMode, double ber) const;
   virtual Ptr<WifiChannel> GetChannel (void) const;
 
@@ -384,7 +388,7 @@ public:
    */
   virtual bool GetGreenfield (void) const;
   /**
-   * \param S1g1Mfield Enable or disable GreenField
+   * \param S1g1Mfield Enable or disable S1g1Mfield
    */
   virtual void SetS1g1Mfield (bool s1g1mfield);
   /**
@@ -392,7 +396,7 @@ public:
    */
   virtual bool GetS1g1Mfield (void) const;
   /**
-   * \param S1gShortfield Enable or disable GreenField
+   * \param S1gShortfield Enable or disable S1gShortfield
    */
   virtual void SetS1gShortfield (bool s1gshortfield);
   /**
@@ -400,7 +404,7 @@ public:
    */
   virtual bool GetS1gShortfield (void) const;
   /**
-   * \param S1gLongfield Enable or disable GreenField
+   * \param S1gLongfield Enable or disable S1gLongfield
    */
   virtual void SetS1gLongfield (bool s1glongfield);
   /**
@@ -412,13 +416,13 @@ public:
    *
    * \return channel width
    */
-  virtual uint32_t GetChannelWidth (void) const ;
+  virtual uint32_t GetChannelWidth (void) const;
   /**
    * Set channel width.
    *
    * \param channel width
    */
-virtual void SetChannelWidth (uint32_t channelwidth) ;
+  virtual void SetChannelWidth (uint32_t channelwidth);
 
   virtual uint32_t GetNBssMembershipSelectors (void) const;
   virtual uint32_t GetBssMembershipSelector (uint32_t selector) const;
@@ -428,11 +432,7 @@ virtual void SetChannelWidth (uint32_t channelwidth) ;
    * \return the number of MCS supported by this phy
    */
   virtual uint8_t GetNMcs (void) const;
-  virtual uint8_t GetMcs (uint8_t mcs) const;
-
-  virtual uint32_t WifiModeToMcs (WifiMode mode);
-  virtual WifiMode McsToWifiMode (uint8_t mcs);
-
+  virtual WifiMode GetMcs (uint8_t mcs) const;
 
 private:
   virtual void DoInitialize (void);
@@ -473,9 +473,14 @@ private:
   void Configure80211n (void);
   /**
    * Configure YansWifiPhy with appropriate channel frequency and
+   * supported rates for 802.11ac standard.
+   */
+  void Configure80211ac (void);
+  /**
+   * Configure YansWifiPhy with appropriate channel frequency and
    * supported rates for 802.11ah standard.
    */
-void Configure80211ah (void);
+  void Configure80211ah (void);
   /**
    * Return the energy detection threshold.
    *
@@ -528,10 +533,11 @@ void Configure80211ah (void);
    *
    * \param packet the packet that the last bit has arrived
    * \param preamble the preamble of the arriving packet
-   * \param packetType The type of the received packet (values: 0 not an A-MPDU, 1 corresponds to any packets in an A-MPDU except the last one, 2 is the last packet in an A-MPDU)
+   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
+   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
    * \param event the corresponding event of the first time the packet arrives
    */
-  void EndReceive (Ptr<Packet> packet, enum WifiPreamble preamble, uint8_t packetType, Ptr<InterferenceHelper::Event> event);
+  void EndReceive (Ptr<Packet> packet, enum WifiPreamble preamble, struct mpduInfo aMpdu, Ptr<InterferenceHelper::Event> event);
 
   bool     m_initialized;         //!< Flag for runtime initialization
   double   m_edThresholdW;        //!< Energy detection threshold in watts
@@ -553,10 +559,9 @@ void Configure80211ah (void);
   bool     m_stbc;                  //!< Flag if STBC is used
   bool     m_greenfield;            //!< Flag if GreenField format is supported
   bool     m_s1g1mfield;            //!< Flag if m_s1g1mfield format is supported
-  bool     m_s1gshortfield;           //!< Flag if s1gshortfield format is supported
-  bool     m_s1glongfield;            //!< Flag if s1glongfield format is supported
+  bool     m_s1gshortfield;         //!< Flag if s1gshortfield format is supported
+  bool     m_s1glongfield;          //!< Flag if s1glongfield format is supported
   bool     m_guardInterval;         //!< Flag if short guard interval is used
-  bool     m_channelBonding;        //!< Flag if channel bonding is used
   uint32_t m_channelWidth;          //!< Channel width
 
   /**
@@ -596,9 +601,9 @@ void Configure80211ah (void);
    * mandatory rates".
    */
   WifiModeList m_deviceRateSet;
+  WifiModeList m_deviceMcsSet;
 
   std::vector<uint32_t> m_bssMembershipSelectorSet;
-  std::vector<uint8_t> m_deviceMcsSet;
   EventId m_endRxEvent;
   EventId m_endPlcpRxEvent;
 

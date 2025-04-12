@@ -530,6 +530,11 @@ public:
    */
   void SetMpduAggregator (Ptr<MpduAggregator> aggregator);
   /**
+   *
+   * \return the attached MpduAggregator
+   */
+  Ptr<MpduAggregator> GetMpduAggregator (void);
+  /**
    * Set MAC address of this MacLow.
    *
    * \param ad Mac48Address of this MacLow
@@ -891,8 +896,10 @@ private:
    * \param hdr
    * \param txVector
    * \param preamble
+   * \param packetType
+   * \param mpduReferenceNumber
    */
-  void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, WifiPreamble preamble, uint8_t packetType);
+  void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, WifiPreamble preamble, uint8_t packetType, uint32_t mpduReferenceNumber);
   /**
    * Return a TXVECTOR for the RTS frame given the destination.
    * The function consults WifiRemoteStationManager, which controls the rate
@@ -1166,7 +1173,7 @@ private:
   /**
    * \param originator Address of peer participating in Block Ack mechanism.
    * \param tid TID for which Block Ack was created.
-   * \param seq Starting sequence
+   * \param seq Starting sequence control
    *
    * This function forward up all completed "old" packets with sequence number
    * smaller than <i>seq</i>. All comparison are performed circularly mod 4096.
@@ -1371,6 +1378,7 @@ private:
   WifiTxVector m_currentTxVector;     //!< TXVECTOR used for the current packet transmission
   bool m_receivedAtLeastOneMpdu;      //!< Flag whether an MPDU has already been successfully received while receiving an A-MPDU
   std::vector<Item> m_txPackets;      //!< Contain temporary items to be sent with the next A-MPDU transmission, once RTS/CTS exchange has succeeded. It is not used in other cases.
+  uint32_t m_mpduReferenceNumber;       //!< A-MPDU reference number to identify all subframes belonging to the same A-MPDU
 };
 
 } //namespace ns3

@@ -37,7 +37,7 @@
 #include "extension-headers.h"
 #include "ns3/traced-value.h"
 #include "ns3/trace-source-accessor.h"
-
+#include "vht-capabilities.h"
 
 namespace ns3 {
 
@@ -225,6 +225,12 @@ private:
   HtCapabilities GetHtCapabilities (void) const;
   S1gCapabilities GetS1gCapabilities (void) const;
   /**
+   * Return the VHT capability of the current AP.
+   *
+   * \return the VHT capability that we support
+   */
+  VhtCapabilities GetVhtCapabilities (void) const;
+  /**
    * Return an instance of SupportedRates that contains all rates that we support
    * including HT rates.
    *
@@ -309,6 +315,7 @@ private:
   std::map<Mac48Address, bool> m_accessList;
     
   std::map<Mac48Address, bool> m_sleepList;
+
   std::map<Mac48Address, bool> m_supportPageSlicingList;
 
   S1gRawCtr m_S1gRawCtr;

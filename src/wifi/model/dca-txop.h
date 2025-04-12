@@ -198,6 +198,7 @@ private:
   void DoInitialize ();
   /* dcf notifications forwarded here */
 
+
   /**
    * Notify the DCF that access has been granted.
    */
@@ -270,8 +271,13 @@ private:
    * Request access from DCF manager if needed.
    */
   void StartAccessIfNeeded (void);
+<<<<<<< found
 
   void StartAccessIfNeededRaw (void);
+||||||| expected
+=======
+
+>>>>>>> replacement
   /**
    * Check if the current packet should be sent with a RTS protection.
    *

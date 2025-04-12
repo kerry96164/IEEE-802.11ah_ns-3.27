@@ -71,11 +71,21 @@ public:
    * \param shortGuardInterval enable or disable short guard interval
    * \param nss the number of spatial STBC streams (NSS)
    * \param ness the number of extension spatial streams (NESS)
+   * \param channelWidth the channel width in MHz
+   * \param aggregation enable or disable MPDU aggregation
    * \param stbc enable or disable STBC
    */
-  WifiTxVector (WifiMode mode, uint8_t powerLevel, uint8_t retries, bool shortGuardInterval, uint8_t nss, uint8_t ness, bool stbc);
+  WifiTxVector (WifiMode mode,
+                uint8_t powerLevel,
+                uint8_t retries,
+                bool shortGuardInterval,
+                uint8_t nss,
+                uint8_t ness,
+                uint32_t channelWidth,
+                bool aggregation,
+                bool stbc);
   /**
-   * \returns the txvector payload mode
+   * \returns the selected payload transmission mode
    */
   WifiMode GetMode (void) const;
   /**
@@ -104,6 +114,16 @@ public:
    * \param retries
    */
   void SetRetries (uint8_t retries);
+  /**
+   * \returns the channel width (in MHz)
+   */
+  uint32_t GetChannelWidth (void) const;
+  /**
+   * Sets the selected channelWidth (in MHz)
+   *
+   * \param channelWidth
+   */
+  void SetChannelWidth (uint32_t channelWidth);
   /**
    * \returns if ShortGuardInterval is used or not
    */
@@ -135,6 +155,18 @@ public:
    */
   void SetNess (uint8_t ness);
   /**
+   * Checks whether the PSDU contains A-MPDU.
+   *  \returns true if this PSDU has A-MPDU aggregation,
+   *           false otherwise.
+   */
+  bool IsAggregation (void) const;
+  /**
+   * Sets if PSDU contains A-MPDU.
+   *
+   * \param aggregated whether the PSDU contains A-MPDU or not.
+   */
+  void SetAggregation (bool aggregation);
+  /**
    * Check if STBC is used or not
    *
    * \returns true if STBC is used,
@@ -158,15 +190,15 @@ private:
                                  to PMD_TXPWRLVL.request */
   uint8_t  m_retries;            /**< The DATA_RETRIES/RTS_RETRIES parameter
                                  for Click radiotap information */
-
+  uint32_t m_channelWidth;       /**< channel width in MHz */
   bool     m_shortGuardInterval; /**< true if short GI is going to be used */
   uint8_t  m_nss;                /**< number of streams */
   uint8_t  m_ness;               /**< number of streams in beamforming */
+  bool     m_aggregation;        /** Flag whether the PSDU contains A-MPDU. */
   bool     m_stbc;               /**< STBC used or not */
 
   bool     m_modeInitialized;         //*< Internal initialization flag */
   bool     m_txPowerLevelInitialized; //*< Internal initialization flag */
-
 };
 
 /**

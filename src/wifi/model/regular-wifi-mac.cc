@@ -143,6 +143,7 @@ RegularWifiMac::SetWifiRemoteStationManager (Ptr<WifiRemoteStationManager> stati
   m_stationManager = stationManager;
   m_stationManager->SetHtSupported (GetHtSupported ());
   //m_stationManager->SetS1gSupported (GetS1gSupported ()); to support
+  m_stationManager->SetVhtSupported (GetVhtSupported ());
   m_low->SetWifiRemoteStationManager (stationManager);
 
   m_dca->SetWifiRemoteStationManager (stationManager);
@@ -287,6 +288,19 @@ RegularWifiMac::SetHtSupported (bool enable)
 {
   NS_LOG_FUNCTION (this);
   m_htSupported = enable;
+}
+
+bool
+RegularWifiMac::GetVhtSupported () const
+{
+  return m_vhtSupported;
+}
+
+void
+RegularWifiMac::SetVhtSupported (bool enable)
+{
+  NS_LOG_FUNCTION (this);
+  m_vhtSupported = enable;
 }
 
 bool
@@ -715,6 +729,12 @@ RegularWifiMac::GetTypeId (void)
                    MakeBooleanAccessor (&RegularWifiMac::SetHtSupported,
                                         &RegularWifiMac::GetHtSupported),
                    MakeBooleanChecker ())
+    .AddAttribute ("VhtSupported",
+                   "This Boolean attribute is set to enable 802.11ac support at this STA",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&RegularWifiMac::SetVhtSupported,
+                                        &RegularWifiMac::GetVhtSupported),
+                   MakeBooleanChecker ())
     //
     .AddAttribute ("S1gSupported",
                    "This Boolean attribute is set to enable 802.11ah support at this STA",
@@ -800,6 +820,7 @@ RegularWifiMac::FinishConfigureStandard (enum WifiPhyStandard standard)
     case WIFI_PHY_STANDARD_80211_5MHZ:
     case WIFI_PHY_STANDARD_80211n_5GHZ:
     case WIFI_PHY_STANDARD_80211n_2_4GHZ:
+    case WIFI_PHY_STANDARD_80211ac:
     case WIFI_PHY_STANDARD_80211ah:  
       cwmin = 15;
       cwmax = 1023;

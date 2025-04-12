@@ -26,9 +26,11 @@ namespace ns3 {
 
 WifiTxVector::WifiTxVector ()
   : m_retries (0),
+    m_channelWidth (20),
     m_shortGuardInterval (false),
     m_nss (1),
     m_ness (0),
+    m_aggregation (false),
     m_stbc (false),
     m_modeInitialized (false),
     m_txPowerLevelInitialized (false)
@@ -36,13 +38,16 @@ WifiTxVector::WifiTxVector ()
 }
 
 WifiTxVector::WifiTxVector (WifiMode mode, uint8_t powerLevel, uint8_t retries,
-                            bool shortGuardInterval, uint8_t nss, uint8_t ness, bool stbc)
+                            bool shortGuardInterval, uint8_t nss, uint8_t ness,
+                            uint32_t channelWidth, bool aggregation, bool stbc)
   : m_mode (mode),
     m_txPowerLevel (powerLevel),
     m_retries (retries),
+    m_channelWidth (channelWidth),
     m_shortGuardInterval (shortGuardInterval),
     m_nss (nss),
     m_ness (ness),
+    m_aggregation (aggregation),
     m_stbc (stbc),
     m_modeInitialized (true),
     m_txPowerLevelInitialized (true)
@@ -75,6 +80,12 @@ WifiTxVector::GetRetries (void) const
   return m_retries;
 }
 
+uint32_t
+WifiTxVector::GetChannelWidth (void) const
+{
+  return m_channelWidth;
+}
+
 bool
 WifiTxVector::IsShortGuardInterval (void) const
 {
@@ -91,6 +102,12 @@ uint8_t
 WifiTxVector::GetNess (void) const
 {
   return m_ness;
+}
+
+bool
+WifiTxVector::IsAggregation (void) const
+{
+  return m_aggregation;
 }
 
 bool
@@ -120,6 +137,12 @@ WifiTxVector::SetRetries (uint8_t retries)
 }
 
 void
+WifiTxVector::SetChannelWidth (uint32_t channelWidth)
+{
+  m_channelWidth = channelWidth;
+}
+
+void
 WifiTxVector::SetShortGuardInterval (bool guardinterval)
 {
   m_shortGuardInterval = guardinterval;
@@ -138,6 +161,12 @@ WifiTxVector::SetNess (uint8_t ness)
 }
 
 void
+WifiTxVector::SetAggregation (bool aggregation)
+{
+  m_aggregation = aggregation;
+}
+
+void
 WifiTxVector::SetStbc (bool stbc)
 {
   m_stbc = stbc;
@@ -145,12 +174,14 @@ WifiTxVector::SetStbc (bool stbc)
 
 std::ostream & operator << ( std::ostream &os, const WifiTxVector &v)
 {
-  os << "mode:" << v.GetMode () <<
-    " txpwrlvl:" << (uint32_t)v.GetTxPowerLevel () <<
-    " retries:" << (uint32_t)v.GetRetries () <<
+  os << "mode: " << v.GetMode () <<
+    " txpwrlvl: " << (uint32_t)v.GetTxPowerLevel () <<
+    " retries: " << (uint32_t)v.GetRetries () <<
+    " channel width: " << v.GetChannelWidth () <<
     " Short GI: " << v.IsShortGuardInterval () <<
     " Nss: " << (uint32_t)v.GetNss () <<
     " Ness: " << (uint32_t)v.GetNess () <<
+    " MPDU aggregation: " << v.IsAggregation () <<
     " STBC: " << v.IsStbc ();
   return os;
 }
