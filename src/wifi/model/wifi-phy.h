@@ -1963,7 +1963,7 @@ private:
    * const  references because of their sizes.
    */
   TracedCallback<Ptr<const Packet>, uint16_t, uint16_t, uint32_t,
-                 WifiPreamble, WifiTxVector, WifiTxVector,
+                 WifiPreamble, WifiTxVector,
                  struct mpduInfo, struct signalNoiseDbm> m_phyMonitorSniffRxTrace;
 
   /**

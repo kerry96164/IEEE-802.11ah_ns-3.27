@@ -296,7 +296,7 @@ WifiPhy::GetPlcpHeaderMode (WifiMode payloadMode, WifiPreamble preamble, WifiTxV
         }
     case WIFI_MOD_CLASS_S1G:
       {
-        switch (payloadMode.GetBandwidth ())
+        switch (txVector.GetChannelWidth ())
           {
           case 1000000:
           default:
@@ -1716,7 +1716,99 @@ WifiPhy::GetVhtMcs9 ()
     WifiModeFactory::CreateWifiMcs ("VhtMcs9", 9, WIFI_MOD_CLASS_VHT);
   return mcs;
 }
-   
+
+
+// Clause 23 (802.11ah)
+
+WifiMode
+WifiPhy::GetS1gMcs0 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs0", 0, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs1 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs1", 1, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs2 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs2", 2, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs3 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs3", 3, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs4 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs4", 4, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs5 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs5", 5, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs6 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs6", 6, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs7 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs7", 7, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs8 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs8", 8, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs9 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs9", 9, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+WifiMode
+WifiPhy::GetS1gMcs10 ()
+{
+  static WifiMode mcs =
+    WifiModeFactory::CreateWifiMcs ("S1gMcs10", 10, WIFI_MOD_CLASS_S1G);
+  return mcs;
+}
+
+// Old method from imec-idlab/IEEE-802.11ah-ns-3
 WifiMode
 WifiPhy::GetOfdmRate300KbpsBW1MHz ()
 {

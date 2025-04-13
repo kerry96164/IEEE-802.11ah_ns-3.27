@@ -26,7 +26,7 @@ namespace ns3 {
 
 WifiTxVector::WifiTxVector ()
   : m_retries (0),
-    m_channelWidth (20),
+    m_channelWidth (1),
     m_shortGuardInterval (false),
     m_nss (1),
     m_ness (0),

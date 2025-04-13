@@ -208,6 +208,18 @@ public:
    * \return true if VHT capability support is enabled, false otherwise
    */
   bool HasVhtSupported (void) const;
+  /**
+   * Enable or disable S1G capability support.
+   *
+   * \param enable enable or disable S1G capability support
+   */
+  void SetS1gSupported (bool enable);
+  /**
+   * Return whether the device has S1G capability support enabled.
+   *
+   * \return true if S1G capability support is enabled, false otherwise
+   */
+  bool HasS1gSupported (void) const;
 
   /**
    * Reset the station, invoked in a STA upon dis-association or in an AP upon reboot.
@@ -1118,6 +1130,7 @@ private:
 
   bool m_htSupported;  //!< Flag if HT capability is supported
   bool m_vhtSupported; //!< Flag if VHT capability is supported
+  bool m_s1gSupported;  //!< Flag if s1g capability is supported
   uint32_t m_maxSsrc;  //!< Maximum STA short retry count (SSRC)
   uint32_t m_maxSlrc;  //!< Maximum STA long retry count (SLRC)
   uint32_t m_rtsCtsThreshold;  //!< Threshold for RTS/CTS
@@ -1187,7 +1200,6 @@ struct WifiRemoteStationState
   bool m_s1g1mfield;          //!< Flag if s1g 1MHz field is used by the remote station
   bool m_s1gshortfield;       //!< Flag if s1g short field is used by the remote station
   bool m_s1glongfield;        //!< Flag if s1g long field is used by the remote station
-  uint32_t m_channelWidth;
 };
 
 /**

@@ -995,6 +995,7 @@ void
 YansWifiPhy::Configure80211n (void)
 {
   NS_LOG_FUNCTION (this);
+  SetChannelWidth (20); //20 MHz
   if (m_channelStartingFrequency >= 2400 && m_channelStartingFrequency <= 2500) //at 2.4 GHz
     {
       m_deviceRateSet.push_back (WifiPhy::GetDsssRate1Mbps ());
@@ -1011,18 +1012,71 @@ YansWifiPhy::Configure80211n (void)
       m_deviceRateSet.push_back (WifiPhy::GetOfdmRate12Mbps ());
       m_deviceRateSet.push_back (WifiPhy::GetOfdmRate24Mbps ());
     }
+
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs0 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs1 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs2 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs3 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs4 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs5 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs6 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs7 ());
+
   m_bssMembershipSelectorSet.push_back (HT_PHY);
-  for (uint8_t i = 0; i < 8; i++)
-    {
-      m_deviceMcsSet.push_back (i);
-    }
+}
+
+void
+YansWifiPhy::Configure80211ac (void)
+{
+  NS_LOG_FUNCTION (this);
+  m_channelStartingFrequency = 5e3;   //5.000 GHz
+  SetChannelWidth (80); //80 MHz
+
+  m_deviceRateSet.push_back (WifiPhy::GetOfdmRate6Mbps ());
+  m_deviceRateSet.push_back (WifiPhy::GetOfdmRate12Mbps ());
+  m_deviceRateSet.push_back (WifiPhy::GetOfdmRate24Mbps ());
+
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs0 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs1 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs2 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs3 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs4 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs5 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs6 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs7 ());
+
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs0 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs1 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs2 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs3 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs4 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs5 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs6 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs7 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs8 ());
+  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs9 ());
+
+  m_bssMembershipSelectorSet.push_back (VHT_PHY);
 }
     
 void
 YansWifiPhy::Configure80211ah (void)
 {
     NS_LOG_FUNCTION (this);
-    m_channelStartingFrequency = 9e2;
+    m_channelStartingFrequency = 9e2; //900 MHz
+    SetChannelWidth (1); //1 MHz
+
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs0 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs1 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs2 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs3 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs4 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs5 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs6 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs7 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs8 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs9 ());
+    m_deviceMcsSet.push_back (WifiPhy::GetS1gMcs10 ());
     
     // need to check for 802.11ah
     //m_deviceRateSet.push_back (WifiPhy::GetOfdmRate6Mbps ());
@@ -1117,74 +1171,6 @@ YansWifiPhy::Configure80211ah (void)
     }
 }
 
-
-void
-YansWifiPhy::Configure80211n (void)
-{
-  NS_LOG_FUNCTION (this);
-  SetChannelWidth (20); //20 MHz
-  if (m_channelStartingFrequency >= 2400 && m_channelStartingFrequency <= 2500) //at 2.4 GHz
-    {
-      m_deviceRateSet.push_back (WifiPhy::GetDsssRate1Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetDsssRate2Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetDsssRate5_5Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetErpOfdmRate6Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetDsssRate11Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetErpOfdmRate12Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetErpOfdmRate24Mbps ());
-    }
-  if (m_channelStartingFrequency >= 5000 && m_channelStartingFrequency <= 6000) //at 5 GHz
-    {
-      m_deviceRateSet.push_back (WifiPhy::GetOfdmRate6Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetOfdmRate12Mbps ());
-      m_deviceRateSet.push_back (WifiPhy::GetOfdmRate24Mbps ());
-    }
-
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs0 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs1 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs2 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs3 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs4 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs5 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs6 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs7 ());
-
-  m_bssMembershipSelectorSet.push_back (HT_PHY);
-}
-
-void
-YansWifiPhy::Configure80211ac (void)
-{
-  NS_LOG_FUNCTION (this);
-  m_channelStartingFrequency = 5e3;   //5.000 GHz
-  SetChannelWidth (80); //80 MHz
-
-  m_deviceRateSet.push_back (WifiPhy::GetOfdmRate6Mbps ());
-  m_deviceRateSet.push_back (WifiPhy::GetOfdmRate12Mbps ());
-  m_deviceRateSet.push_back (WifiPhy::GetOfdmRate24Mbps ());
-
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs0 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs1 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs2 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs3 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs4 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs5 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs6 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetHtMcs7 ());
-
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs0 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs1 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs2 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs3 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs4 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs5 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs6 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs7 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs8 ());
-  m_deviceMcsSet.push_back (WifiPhy::GetVhtMcs9 ());
-
-  m_bssMembershipSelectorSet.push_back (VHT_PHY);
-}
 
 void
 YansWifiPhy::RegisterListener (WifiPhyListener *listener)
@@ -1561,6 +1547,18 @@ YansWifiPhy::GetMembershipSelectorModes (uint32_t selector)
     }
   if (id == S1G_PHY)
     {
+      supportedmodes.push_back (WifiPhy::GetS1gMcs0 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs1 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs2 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs3 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs4 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs5 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs6 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs7 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs8 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs9 ());
+      supportedmodes.push_back (WifiPhy::GetS1gMcs10 ());
+      
       //mandatory MCS 0 to 7, 1Mhz
       supportedmodes.push_back (WifiPhy::GetOfdmRate300KbpsBW1MHz ());
       supportedmodes.push_back (WifiPhy::GetOfdmRate600KbpsBW1MHz ());

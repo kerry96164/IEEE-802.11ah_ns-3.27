@@ -142,8 +142,8 @@ RegularWifiMac::SetWifiRemoteStationManager (Ptr<WifiRemoteStationManager> stati
   NS_LOG_FUNCTION (this << stationManager);
   m_stationManager = stationManager;
   m_stationManager->SetHtSupported (GetHtSupported ());
-  //m_stationManager->SetS1gSupported (GetS1gSupported ()); to support
   m_stationManager->SetVhtSupported (GetVhtSupported ());
+  m_stationManager->SetS1gSupported (GetS1gSupported ()); //to support
   m_low->SetWifiRemoteStationManager (stationManager);
 
   m_dca->SetWifiRemoteStationManager (stationManager);

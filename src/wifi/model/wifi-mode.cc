@@ -216,6 +216,76 @@ WifiMode::GetDataRate (uint32_t channelWidth, bool isShortGuardInterval, uint8_t
 
       dataRate = lrint (ceil (symbolRate * usableSubCarriers * numberOfBitsPerSubcarrier * codingRate));
     }
+  else if (item->modClass == WIFI_MOD_CLASS_S1G)
+    {
+      if (item->mcsValue == 10) 
+        {
+          //S1G MCS 10 is only valid when NSS (Number of Spatial Streams) == 1
+          NS_ASSERT (channelWidth == 1);
+        }
+
+      double symbolRate;
+      if (!isShortGuardInterval)
+        {
+          symbolRate = (1 / 40) * 1e6;
+        }
+      else
+        {
+          symbolRate = (1 / 36) * 1e6;
+        }
+
+      uint32_t usableSubCarriers; // N_sd Number of complex data numbers per spatial stream per OFDM symbol
+      switch (channelWidth)
+        {
+        case 1:
+        default:
+          usableSubCarriers = 24;
+          break;
+        case 2:
+          usableSubCarriers = 52;
+          break;
+        case 4:
+          usableSubCarriers = 108;
+          break;
+        case 8:
+          usableSubCarriers = 234;
+          break;
+        case 16:
+          usableSubCarriers = 468;
+          break;
+        }
+
+      double codingRate;
+      switch (GetCodeRate (nss))
+        {
+        case WIFI_CODE_RATE_5_6:
+          codingRate = (5.0 / 6.0);
+          break;
+        case WIFI_CODE_RATE_3_4:
+          codingRate = (3.0 / 4.0);
+          break;
+        case WIFI_CODE_RATE_2_3:
+          codingRate = (2.0 / 3.0);
+          break;
+        case WIFI_CODE_RATE_1_2:
+          codingRate = (1.0 / 2.0);
+          break;
+        case WIFI_CODE_RATE_UNDEFINED:
+        default:
+          NS_FATAL_ERROR ("trying to get datarate for a mcs without any coding rate defined");
+          break;
+        }
+
+      uint32_t numberOfBitsPerSubcarrier = log2 (GetConstellationSize (nss));
+
+      dataRate = lrint (ceil (symbolRate * usableSubCarriers * numberOfBitsPerSubcarrier * codingRate));
+
+      if (item->mcsValue == 10) 
+        {
+          // MCS 10 coding rate is 1/2 with 2x repetition, the data rate is halved 
+          dataRate = dataRate * 0.5; 
+        }
+    } // s1g
   else
     {
       NS_ASSERT ("undefined datarate for the modulation class!");
@@ -272,6 +342,31 @@ WifiMode::GetCodeRate (uint8_t nss) const
           return WIFI_CODE_RATE_UNDEFINED;
         }
     }
+  else if (item->modClass == WIFI_MOD_CLASS_S1G)
+    {
+      NS_ASSERT (nss <= 4);
+      NS_ASSERT (!(item->mcsValue == 10 && nss != 1)) //MCS 10 is only valid when NSS (Number of Spatial Streams) == 1
+      switch (item->mcsValue)
+        {
+        case 0:
+        case 1:
+        case 3:
+        case 10:
+          return WIFI_CODE_RATE_1_2;
+        case 2:
+        case 4:
+        case 6:
+        case 8:
+          return WIFI_CODE_RATE_3_4;
+        case 5:
+          return WIFI_CODE_RATE_2_3;
+        case 7:
+        case 9:
+          return WIFI_CODE_RATE_5_6;
+        default:
+          return WIFI_CODE_RATE_UNDEFINED;
+        }
+    }
   else
     {
       return item->codingRate;
@@ -310,6 +405,32 @@ WifiMode::GetConstellationSize (uint8_t nss) const
       switch (item->mcsValue)
         {
         case 0:
+          return 2;
+        case 1:
+        case 2:
+          return 4;
+        case 3:
+        case 4:
+          return 16;
+        case 5:
+        case 6:
+        case 7:
+          return 64;
+        case 8:
+        case 9:
+          return 256;
+        default:
+          return 0;
+        }
+    }
+  else if (item->modClass == WIFI_MOD_CLASS_S1G)
+    {
+      NS_ASSERT (nss <= 4);
+      NS_ASSERT (!(item->mcsValue == 10 && nss != 1)) //MCS 10 is only valid when NSS (Number of Spatial Streams) == 1
+      switch (item->mcsValue)
+        {
+        case 0:
+        case 10:
           return 2;
         case 1:
         case 2:
@@ -448,8 +569,8 @@ WifiModeFactory::CreateWifiMcs (std::string uniqueName,
   item->uniqueUid = uniqueName;
   item->modClass = modClass;
 
-  //The modulation class must be either HT or VHT
-  NS_ASSERT (modClass == WIFI_MOD_CLASS_HT || modClass == WIFI_MOD_CLASS_VHT);
+  //The modulation class must be either HT, VHT, or S1G
+  NS_ASSERT (modClass == WIFI_MOD_CLASS_HT || modClass == WIFI_MOD_CLASS_VHT || modClass == WIFI_MOD_CLASS_S1G);
 
   item->mcsValue = mcsValue;
   //fill unused items with dummy values

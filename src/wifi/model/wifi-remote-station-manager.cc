@@ -347,7 +347,8 @@ WifiRemoteStationManager::GetTypeId (void)
 
 WifiRemoteStationManager::WifiRemoteStationManager ()
   : m_htSupported (false),
-    m_vhtSupported (false)
+    m_vhtSupported (false),
+    m_S1gSupported (false),
 {
 }
 
@@ -380,7 +381,7 @@ WifiRemoteStationManager::SetupPhy (Ptr<WifiPhy> phy)
   //acknowledgements.
   m_wifiPhy = phy;
   m_defaultTxMode = phy->GetMode (0);
-  if (HasHtSupported () || HasVhtSupported ())
+  if (HasHtSupported () || HasVhtSupported () || HasS1gSupported ())
     {
       m_defaultTxMcs = phy->GetMcs (0);
     }
@@ -442,6 +443,18 @@ bool
 WifiRemoteStationManager::HasVhtSupported (void) const
 {
   return m_vhtSupported;
+}
+
+void
+WifiRemoteStationManager::SetS1gSupported (bool enable)
+{
+  m_S1gSupported = enable;
+}
+
+bool
+WifiRemoteStationManager::HasS1gSupported (void) const
+{
+  return m_S1gSupported;
 }
 
 uint32_t
@@ -629,7 +642,7 @@ WifiRemoteStationManager::GetDataTxVector (Mac48Address address, const WifiMacHe
   if (address.IsGroup () && (header->GetType () == sigheader)) //use temporary, need change
       {
         WifiTxVector v;
-        v.SetMode (WifiPhy::GetOfdmRate300KbpsBW1MHz ());  //maybe should be 150k
+        v.SetMode (WifiPhy::GetS1gMcs1 ());  //maybe should be 150k | 要改成GetNonUnicastMode嗎?
         v.SetTxPowerLevel (m_defaultTxPowerLevel);
         v.SetChannelWidth (m_wifiPhy->GetChannelWidth ());
         v.SetShortGuardInterval (m_wifiPhy->GetGuardInterval ());
@@ -1013,6 +1026,8 @@ WifiRemoteStationManager::GetControlAnswerMode (Mac48Address address, WifiMode r
   NS_LOG_FUNCTION (this << address << reqMode);
   WifiMode mode = GetDefaultMode ();
   bool found = false;
+  
+  /* 原來只支援 S1G
   if (reqMode.GetBandwidth() == 2)
     {
         mode = WifiPhy::GetOfdmRate650KbpsBW2MHz ();
@@ -1022,6 +1037,8 @@ WifiRemoteStationManager::GetControlAnswerMode (Mac48Address address, WifiMode r
         mode = GetDefaultMode ();
     }
   return mode;
+  */
+
   //First, search the BSS Basic Rate set
   for (WifiModeListIterator i = m_bssBasicRateSet.begin (); i != m_bssBasicRateSet.end (); i++)
     {
@@ -1039,7 +1056,7 @@ WifiRemoteStationManager::GetControlAnswerMode (Mac48Address address, WifiMode r
           found = true;
         }
     }
-  if (HasHtSupported () || HasVhtSupported ())
+  if (HasHtSupported () || HasVhtSupported () || HasS1gSupported ())
     {
       if (!found)
         {
@@ -1464,34 +1481,34 @@ WifiRemoteStationManager::AddStationS1gCapabilities (Mac48Address from, S1gCapab
   state = LookupState (from);
   
   switch (s1gcapabilities.GetChannelWidth () )
-        {
-            case 0:
-                state->m_channelWidth = 2;
-                break;
-            case 1:
-                state->m_channelWidth = 4;
-                break;
-            case 2:
-                state->m_channelWidth = 8;
-                break;
-            case 3:
-                state->m_channelWidth = 16;
-                break;
-            default:
-                NS_ASSERT ("error on s1gcapabilities.GetChannelWidth ()");
-    
-        }
-    NS_LOG_UNCOND (",,m_wifiPhy->GetChannelWidth () " << m_wifiPhy->GetChannelWidth ()<< state->m_channelWidth);
-
-    if (m_wifiPhy->GetChannelWidth () > state->m_channelWidth)
     {
-        NS_LOG_UNCOND (">>m_wifiPhy->GetChannelWidth () " << m_wifiPhy->GetChannelWidth ());
-        m_wifiPhy->SetChannelWidth (state->m_channelWidth); // take the minimal
+      case 0:
+          state->m_channelWidth = 2;
+          break;
+      case 1:
+          state->m_channelWidth = 4;
+          break;
+      case 2:
+          state->m_channelWidth = 8;
+          break;
+      case 3:
+          state->m_channelWidth = 16;
+          break;
+      default:
+          NS_ASSERT ("error on s1gcapabilities.GetChannelWidth ()");
+
+    }
+  NS_LOG_UNCOND (",,m_wifiPhy->GetChannelWidth () " << m_wifiPhy->GetChannelWidth ()<< state->m_channelWidth);
+
+  if (m_wifiPhy->GetChannelWidth () > state->m_channelWidth)
+    {
+      NS_LOG_UNCOND (">>m_wifiPhy->GetChannelWidth () " << m_wifiPhy->GetChannelWidth ());
+      m_wifiPhy->SetChannelWidth (state->m_channelWidth); // take the minimal
     }
     
   if (m_wifiPhy->GetChannelWidth () < state->m_channelWidth)
     {
-        NS_LOG_UNCOND ("..m_wifiPhy->GetChannelWidth () " << m_wifiPhy->GetChannelWidth ());
+      NS_LOG_UNCOND ("..m_wifiPhy->GetChannelWidth () " << m_wifiPhy->GetChannelWidth ());
       state->m_channelWidth = m_wifiPhy->GetChannelWidth (); // take the minimal
     }
     

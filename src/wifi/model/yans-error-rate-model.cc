@@ -189,16 +189,10 @@ YansErrorRateModel::GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, d
       || mode.GetModulationClass () == WIFI_MOD_CLASS_VHT
       || mode.GetModulationClass () == WIFI_MOD_CLASS_S1G)
     {
-      if (mode.GetConstellationSize () == 2) //SIG MCS=10 not supported
+      if (mode.GetConstellationSize (1) == 2) //SIG MCS=10 not supported
         {
           if (mode.GetCodeRate (1) == WIFI_CODE_RATE_1_2)
             {
-              double ErrorRate = GetFecBpskBer (snr,
-                                                nbits,
-                                                mode.GetBandwidth (), //signal spread
-                                                mode.GetPhyRate (), //phy rate
-                                                10, //dFree
-                                                11); //adFree
               return GetFecBpskBer (snr,
                                     nbits,
                                     txVector.GetChannelWidth () * 1000000, //signal spread
