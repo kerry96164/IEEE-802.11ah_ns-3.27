@@ -19,6 +19,7 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
+
 #include "ns3/assert.h"
 #include "ns3/address-utils.h"
 #include "wifi-mac-header.h"
@@ -77,6 +78,7 @@ WifiMacHeader::WifiMacHeader ()
     m_amsduPresent (0)
 {
 }
+
 WifiMacHeader::~WifiMacHeader ()
 {
 }
@@ -218,6 +220,10 @@ WifiMacHeader::SetType (enum WifiMacType type)
 {
   switch (type)
     {
+    case WIFI_MAC_CTL_CTLWRAPPER:
+      m_ctrlType = TYPE_CTL;
+      m_ctrlSubtype = SUBTYPE_CTL_CTLWRAPPER;
+      break;
     case WIFI_MAC_CTL_BACKREQ:
       m_ctrlType = TYPE_CTL;
       m_ctrlSubtype = SUBTYPE_CTL_BACKREQ;
@@ -241,10 +247,6 @@ WifiMacHeader::SetType (enum WifiMacType type)
     case WIFI_MAC_CTL_ACK:
       m_ctrlType = TYPE_CTL;
       m_ctrlSubtype = SUBTYPE_CTL_ACK;
-      break;
-    case WIFI_MAC_CTL_CTLWRAPPER:
-      m_ctrlType = TYPE_CTL;
-      m_ctrlSubtype = SUBTYPE_CTL_CTLWRAPPER;
       break;
     case WIFI_MAC_MGT_ASSOCIATION_REQUEST:
       m_ctrlType = TYPE_MGT;
@@ -582,16 +584,16 @@ void WifiMacHeader::SetQosTxopLimit (uint8_t txop)
 
 void WifiMacHeader::SetQosMeshControlPresent (void)
 {
-  // mark bit 0 of this variable instead of bit 8, since m_qosStuff is
-  // shifted by one byte when serialized
-  m_qosStuff = m_qosStuff | 0x01; // bit 8 of QoS Control Field
+  //Mark bit 0 of this variable instead of bit 8, since m_qosStuff is
+  //shifted by one byte when serialized
+  m_qosStuff = m_qosStuff | 0x01; //bit 8 of QoS Control Field
 }
 
 void WifiMacHeader::SetQosNoMeshControlPresent ()
 {
-  // clear bit 0 of this variable instead of bit 8, since m_qosStuff is
-  // shifted by one byte when serialized
-  m_qosStuff = m_qosStuff & 0xfe; // bit 8 of QoS Control Field
+  //Clear bit 0 of this variable instead of bit 8, since m_qosStuff is
+  //shifted by one byte when serialized
+  m_qosStuff = m_qosStuff & 0xfe; //bit 8 of QoS Control Field
 }
 
 
@@ -1366,7 +1368,6 @@ WifiMacHeader::Print (std::ostream &os) const  //to do, support S1G beacon frame
     	os << "Duration/ID=" << m_duration << "us"
     	<< ", RA=" << m_addr1 << ", TA=" << m_addr2;
       break;
-
     case WIFI_MAC_MGT_BEACON:
     case WIFI_MAC_MGT_ASSOCIATION_REQUEST:
     case WIFI_MAC_MGT_ASSOCIATION_RESPONSE:

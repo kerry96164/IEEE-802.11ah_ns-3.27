@@ -103,8 +103,6 @@ public:
      * go forward by one byte
      */
     inline void Next (void);
-
-    inline bool CanRead(uint32_t delta);
     /**
      * go backward by one byte
      */
@@ -837,11 +835,6 @@ Buffer::Iterator::Construct (const Buffer *buffer)
   m_data = buffer->m_data->m_data;
 }
 
-bool
-Buffer::Iterator::CanRead(uint32_t delta) {
-	return m_current + delta <= m_dataEnd;
-}
-
 void 
 Buffer::Iterator::Next (void)
 {
@@ -1082,7 +1075,5 @@ Buffer::End (void) const
 
 
 } // namespace ns3
-
-
 
 #endif /* BUFFER_H */

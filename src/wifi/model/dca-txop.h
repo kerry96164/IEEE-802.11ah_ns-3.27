@@ -245,7 +245,7 @@ private:
    */
   void GotAck (double snr, WifiMode txMode);
   /**
-   * Event handler when an ACK is received.
+   * Event handler when an ACK is missed.
    */
   void MissedAck (void);
   /**
@@ -273,16 +273,6 @@ private:
   void StartAccessIfNeeded (void);
 
   void StartAccessIfNeededRaw (void);
-  /**
-   * Check if the current packet should be sent with a RTS protection.
-   *
-   * \param packet
-   * \param header
-   *
-   * \return true if RTS protection should be used,
-   *         false otherwise
-   */
-  bool NeedRts (Ptr<const Packet> packet, const WifiMacHeader *header);
   /**
    * Check if RTS should be re-transmitted if CTS was missed.
    *

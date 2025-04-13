@@ -6,10 +6,6 @@ def build(bld):
         'model/bulk-send-application.cc',
         'model/onoff-application.cc',
         'model/packet-sink.cc',
-        'model/ping6.cc',
-        'model/radvd.cc',
-        'model/radvd-interface.cc',
-        'model/radvd-prefix.cc',
         'model/udp-client.cc',
         'model/udp-server.cc',
         'model/seq-ts-header.cc',
@@ -17,7 +13,6 @@ def build(bld):
         'model/packet-loss-counter.cc',
         'model/udp-echo-client.cc',
         'model/udp-echo-server.cc',
-        'model/v4ping.cc',
         'model/application-packet-probe.cc',
         'model/tcp-echo-client.cc',
         'model/tcp-echo-server.cc',
@@ -26,11 +21,8 @@ def build(bld):
         'helper/bulk-send-helper.cc',
         'helper/on-off-helper.cc',
         'helper/packet-sink-helper.cc',
-        'helper/ping6-helper.cc',
         'helper/udp-client-server-helper.cc',
         'helper/udp-echo-helper.cc',
-        'helper/v4ping-helper.cc',
-        'helper/radvd-helper.cc',
         'helper/tcp-echo-helper.cc'
         ]
 
@@ -45,10 +37,6 @@ def build(bld):
         'model/bulk-send-application.h',
         'model/onoff-application.h',
         'model/packet-sink.h',
-        'model/ping6.h',
-        'model/radvd.h',
-        'model/radvd-interface.h',
-        'model/radvd-prefix.h',
         'model/udp-client.h',
         'model/udp-server.h',
         'model/seq-ts-header.h',
@@ -56,7 +44,6 @@ def build(bld):
         'model/packet-loss-counter.h',
         'model/udp-echo-client.h',
         'model/udp-echo-server.h',
-        'model/v4ping.h',
         'model/application-packet-probe.h',
         'model/udp-echo-server.h',
         'model/tcp-echo-client.h',
@@ -66,11 +53,8 @@ def build(bld):
         'helper/bulk-send-helper.h',
         'helper/on-off-helper.h',
         'helper/packet-sink-helper.h',
-        'helper/ping6-helper.h',
         'helper/udp-client-server-helper.h',
         'helper/udp-echo-helper.h',
-        'helper/v4ping-helper.h',
-        'helper/radvd-helper.h',
         'helper/tcp-echo-helper.h'
         ]
 

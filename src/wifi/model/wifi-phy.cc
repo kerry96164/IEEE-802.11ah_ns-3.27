@@ -279,14 +279,14 @@ WifiPhy::GetPlcpHeaderMode (WifiMode payloadMode, WifiPreamble preamble, WifiTxV
     case WIFI_MOD_CLASS_VHT:
       switch (txVector.GetChannelWidth ())
         {
-        case 5000000:
+        case 5:
           return WifiPhy::GetOfdmRate1_5MbpsBW5MHz ();
-        case 10000000:
+        case 10:
           return WifiPhy::GetOfdmRate3MbpsBW10MHz ();
-        case 20000000:
-        case 40000000:
-        case 80000000:
-        case 160000000:
+        case 20:
+        case 40:
+        case 80:
+        case 160:
         default:
           //(Section 18.3.2 "PLCP frame format"; IEEE Std 802.11-2012)
           //actually this is only the first part of the PlcpHeader,
@@ -315,7 +315,7 @@ WifiPhy::GetPlcpHeaderMode (WifiMode payloadMode, WifiPreamble preamble, WifiTxV
       return WifiPhy::GetErpOfdmRate6Mbps ();
     case WIFI_MOD_CLASS_DSSS:
     case WIFI_MOD_CLASS_HR_DSSS:
-      if (preamble == WIFI_PREAMBLE_LONG)
+      if (preamble == WIFI_PREAMBLE_LONG || payloadMode == WifiPhy::GetDsssRate1Mbps ())
         {
           //(Section 16.2.3 "PLCP field definitions" and Section 17.2.2.2 "Long PPDU format"; IEEE Std 802.11-2012)
           return WifiPhy::GetDsssRate1Mbps ();
@@ -400,7 +400,7 @@ WifiPhy::GetPlcpHeaderDuration (WifiTxVector txVector, WifiPreamble preamble)
       {
         switch (txVector.GetChannelWidth ())
           {
-          case 20000000:
+          case 20:
           default:
             //(Section 18.3.3 "PLCP preamble (SYNC))" and Figure 18-4 "OFDM training structure"; IEEE Std 802.11-2012)
             //also (Section 18.3.2.4 "Timing related parameters" Table 18-5 "Timing-related parameters"; IEEE Std 802.11-2012)
@@ -409,10 +409,10 @@ WifiPhy::GetPlcpHeaderDuration (WifiTxVector txVector, WifiPreamble preamble)
             //header, see Section 18.3.2 and Figure 18-1) is sent using the
             //payload mode.
             return MicroSeconds (4);
-          case 10000000:
+          case 10:
             //(Section 18.3.2.4 "Timing related parameters" Table 18-5 "Timing-related parameters"; IEEE Std 802.11-2012)
             return MicroSeconds (8);
-          case 5000000:
+          case 5:
             //(Section 18.3.2.4 "Timing related parameters" Table 18-5 "Timing-related parameters"; IEEE Std 802.11-2012)
             return MicroSeconds (16);
           }
@@ -450,7 +450,7 @@ WifiPhy::GetPlcpHeaderDuration (WifiTxVector txVector, WifiPreamble preamble)
       return MicroSeconds (4);
     case WIFI_MOD_CLASS_DSSS:
     case WIFI_MOD_CLASS_HR_DSSS:
-      if (preamble == WIFI_PREAMBLE_SHORT)
+      if ((preamble == WIFI_PREAMBLE_SHORT) && (txVector.GetMode ().GetDataRate (22, 0, 1) > 1000000))
         {
           //(Section 17.2.2.3 "Short PPDU format" and Figure 17-2 "Short PPDU format"; IEEE Std 802.11-2012)
           return MicroSeconds (24);
@@ -479,16 +479,16 @@ WifiPhy::GetPlcpPreambleDuration (WifiTxVector txVector, WifiPreamble preamble)
       {
         switch (txVector.GetChannelWidth ())
           {
-          case 20000000:
+          case 20:
           default:
             //(Section 18.3.3 "PLCP preamble (SYNC))" Figure 18-4 "OFDM training structure"
             //also Section 18.3.2.3 "Modulation-dependent parameters" Table 18-4 "Modulation-dependent parameters"; IEEE Std 802.11-2012)
             return MicroSeconds (16);
-          case 10000000:
+          case 10:
             //(Section 18.3.3 "PLCP preamble (SYNC))" Figure 18-4 "OFDM training structure"
             //also Section 18.3.2.3 "Modulation-dependent parameters" Table 18-4 "Modulation-dependent parameters"; IEEE Std 802.11-2012)
             return MicroSeconds (32);
-          case 5000000:
+          case 5:
             //(Section 18.3.3 "PLCP preamble (SYNC))" Figure 18-4 "OFDM training structure"
             //also Section 18.3.2.3 "Modulation-dependent parameters" Table 18-4 "Modulation-dependent parameters"; IEEE Std 802.11-2012)
             return MicroSeconds (64);
@@ -514,7 +514,7 @@ WifiPhy::GetPlcpPreambleDuration (WifiTxVector txVector, WifiPreamble preamble)
       return MicroSeconds (16);
     case WIFI_MOD_CLASS_DSSS:
     case WIFI_MOD_CLASS_HR_DSSS:
-      if (preamble == WIFI_PREAMBLE_SHORT)
+      if ((preamble == WIFI_PREAMBLE_SHORT) && (txVector.GetMode ().GetDataRate (22, 0, 1) > 1000000))
         {
           //(Section 17.2.2.3 "Short PPDU format)" Figure 17-2 "Short PPDU format"; IEEE Std 802.11-2012)
           return MicroSeconds (72);
@@ -531,7 +531,13 @@ WifiPhy::GetPlcpPreambleDuration (WifiTxVector txVector, WifiPreamble preamble)
 }
 
 Time
-WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble preamble, double frequency, uint8_t packetType, uint8_t incFlag)
+WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble preamble, double frequency)
+{
+  return GetPayloadDuration (size, txVector, preamble, frequency, NORMAL_MPDU, 0);
+}
+
+Time
+WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble preamble, double frequency, enum mpduType mpdutype, uint8_t incFlag)
 {
   WifiMode payloadMode = txVector.GetMode ();
   NS_LOG_FUNCTION (size << payloadMode);
@@ -546,14 +552,14 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble 
         Time symbolDuration;
         switch (txVector.GetChannelWidth ())
           {
-          case 20000000:
+          case 20:
           default:
             symbolDuration = MicroSeconds (4);
             break;
-          case 10000000:
+          case 10:
             symbolDuration = MicroSeconds (8);
             break;
-          case 5000000:
+          case 5:
             symbolDuration = MicroSeconds (16);
             break;
           }
@@ -596,7 +602,7 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble 
                 m_totalAmpduNumSymbols = 0;
               }
           }
-        else if (packetType == 0 && preamble != WIFI_PREAMBLE_NONE)
+        else if (mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE)
           {
             //Not an A-MPDU
             numSymbols = lrint (ceil ((8 + size * 8.0 + 6.0) / numDataBitsPerSymbol));
@@ -609,11 +615,11 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble 
         //Add signal extension for ERP PHY
         if (payloadMode.GetModulationClass () == WIFI_MOD_CLASS_ERP_OFDM)
           {
-            return Time (numSymbols * symbolDuration) + MicroSeconds (6);
+            return NanoSeconds (numSymbols * symbolDuration.GetNanoSeconds ()) + MicroSeconds (6);
           }
         else
           {
-            return Time (numSymbols * symbolDuration);
+            return NanoSeconds (numSymbols * symbolDuration.GetNanoSeconds ());
           }
       }
     case WIFI_MOD_CLASS_HT:
@@ -691,7 +697,7 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble 
                 m_totalAmpduNumSymbols = 0;
               }
           }
-        else if (packetType == 0 && preamble != WIFI_PREAMBLE_NONE)
+        else if (mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE)
           {
             //Not an A-MPDU
             numSymbols = lrint (m_Stbc * ceil ((8 + size * 8.0 + 6.0 * Nes) / (m_Stbc * numDataBitsPerSymbol)));
@@ -701,13 +707,13 @@ WifiPhy::GetPayloadDuration (uint32_t size, WifiTxVector txVector, WifiPreamble 
             NS_FATAL_ERROR ("Wrong combination of preamble and packet type");
           }
 
-        if (payloadMode.GetModulationClass () == WIFI_MOD_CLASS_HT && frequency >= 2400 && frequency <= 2500 && ((packetType == 0 && preamble != WIFI_PREAMBLE_NONE) || (packetType == 2 && preamble == WIFI_PREAMBLE_NONE))) //at 2.4 GHz
+        if (payloadMode.GetModulationClass () == WIFI_MOD_CLASS_HT && frequency >= 2400 && frequency <= 2500 && ((mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE) || (mpdutype == LAST_MPDU_IN_AGGREGATE && preamble == WIFI_PREAMBLE_NONE))) //at 2.4 GHz
           {
-            return Time (numSymbols * symbolDuration) + MicroSeconds (6);
+            return NanoSeconds (numSymbols * symbolDuration.GetNanoSeconds ()) + MicroSeconds (6);
           }
         else //at 5 GHz
           {
-            return Time (numSymbols * symbolDuration);
+            return NanoSeconds (numSymbols * symbolDuration.GetNanoSeconds ());
           }
       }
     case WIFI_MOD_CLASS_S1G:
@@ -868,11 +874,17 @@ else
 }
 
 Time
-WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, WifiPreamble preamble, double frequency, uint8_t packetType, uint8_t incFlag)
+WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, WifiPreamble preamble, double frequency, enum mpduType mpdutype, uint8_t incFlag)
 {
   Time duration = CalculatePlcpPreambleAndHeaderDuration (txVector, preamble)
-    + GetPayloadDuration (size, txVector, preamble, frequency, packetType, incFlag);
+    + GetPayloadDuration (size, txVector, preamble, frequency, mpdutype, incFlag);
   return duration;
+}
+
+Time
+WifiPhy::CalculateTxDuration (uint32_t size, WifiTxVector txVector, WifiPreamble preamble, double frequency)
+{
+  return CalculateTxDuration (size, txVector, preamble, frequency, NORMAL_MPDU, 0);
 }
 
 void

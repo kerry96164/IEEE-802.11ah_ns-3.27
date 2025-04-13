@@ -21,6 +21,7 @@
 #include "wifi-mac.h"
 #include "dcf.h"
 #include "ns3/uinteger.h"
+#include "ns3/boolean.h"
 #include "ns3/trace-source-accessor.h"
 
 namespace ns3 {
@@ -389,7 +390,7 @@ WifiMac::Configure80211n_2_4Ghz (void)
   Configure80211g ();
   SetRifs (MicroSeconds (2));
   SetBasicBlockAckTimeout (GetSifs () + GetSlot () + GetDefaultBasicBlockAckDelay () + GetDefaultMaxPropagationDelay () * 2);
-  SetCompressedBlockAckTimeout (GetSifs () + GetSlot () + GetDefaultCompressedBlockAckDelay () + GetDefaultMaxPropagationDelay () * 2);
+  SetCompressedBlockAckTimeout (GetSifs () + GetSlot () + MicroSeconds (448) + GetDefaultMaxPropagationDelay () * 2);
 }
 void
 WifiMac::Configure80211n_5Ghz (void)

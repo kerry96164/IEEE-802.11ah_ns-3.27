@@ -1,0 +1,94 @@
+--- src/wifi/model/yans-wifi-phy.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/yans-wifi-phy.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -163,11 +164,20 @@
+                                         &YansWifiPhy::SetStbc),
+                    MakeBooleanChecker ())
+     .AddAttribute ("GreenfieldEnabled",
+-                   "Whether or not Greenfield is enabled.",
++                   "Whether or not Greenfield is enabled."
++                   "This parameter is only valuable for 802.11n STAs and APs.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&YansWifiPhy::GetGreenfield,
+                                         &YansWifiPhy::SetGreenfield),
+                    MakeBooleanChecker ())
++    .AddAttribute ("ShortPlcpPreambleSupported",
++                   "Whether or not short PLCP preamble is supported."
++                   "This parameter is only valuable for 802.11b STAs and APs."
++                   "Note: 802.11g APs and STAs always support short PLCP preamble.",
++                   BooleanValue (false),
++                   MakeBooleanAccessor (&YansWifiPhy::GetShortPlcpPreambleSupported,
++                                        &YansWifiPhy::SetShortPlcpPreambleSupported),
++                   MakeBooleanChecker ())
+     .AddAttribute ("ChannelWidth",
+                    "Whether 5MHz, 10MHz, 20MHz, 22MHz, 40MHz, 80 MHz or 160 MHz.",
+                    UintegerValue (20),
+@@ -569,11 +581,12 @@
+                                             double rxPowerDbm,
+                                             WifiTxVector txVector,
+                                             enum WifiPreamble preamble,
+-                                            struct mpduInfo aMpdu, Time rxDuration)
++                                            enum mpduType mpdutype,
++                                            Time rxDuration)
+ {
+   //This function should be later split to check separately whether plcp preamble and plcp header can be successfully received.
+   //Note: plcp preamble reception is not yet modeled.
+-  NS_LOG_FUNCTION (this << packet << rxPowerDbm << txVector.GetMode () << preamble << (uint32_t)aMpdu.packetType);
++  NS_LOG_FUNCTION (this << packet << rxPowerDbm << txVector.GetMode () << preamble << (uint32_t)mpdutype);
+   AmpduTag ampduTag;
+   rxPowerDbm += m_rxGainDb;
+   double rxPowerW = DbmToW (rxPowerDbm);
+@@ -1201,7 +1265,7 @@
+ 
+   if (m_plcpSuccess == true)
+     {
+-      NS_LOG_DEBUG ("mode=" << (event->GetPayloadMode ().GetDataRate (event->GetTxVector ().GetChannelWidth (), event->GetTxVector ().IsShortGuardInterval (), 1)) <<
++      NS_LOG_DEBUG ("mode=" << (event->GetPayloadMode ().GetDataRate (event->GetTxVector ())) <<
+                     ", snr(dB)=" << RatioToDb (snrPer.snr) << ", per=" << snrPer.per << ", size=" << packet->GetSize ());
+ 
+       if (m_random->GetValue () > snrPer.per)
+@@ -1229,15 +1296,17 @@
+         {
+           /* failure. */
+           NotifyRxDrop (packet);
+-          m_state->SwitchFromRxEndError (packet, snrPer.snr);
++          bool isEndOfFrame = ((mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE) || (mpdutype == LAST_MPDU_IN_AGGREGATE && preamble == WIFI_PREAMBLE_NONE));
++          m_state->SwitchFromRxEndError (packet, snrPer.snr, isEndOfFrame);
+         }
+     }
+   else
+     {
+-      m_state->SwitchFromRxEndError (packet, snrPer.snr);
++      bool isEndOfFrame = ((mpdutype == NORMAL_MPDU && preamble != WIFI_PREAMBLE_NONE) || (mpdutype == LAST_MPDU_IN_AGGREGATE && preamble == WIFI_PREAMBLE_NONE));
++      m_state->SwitchFromRxEndError (packet, snrPer.snr, isEndOfFrame);
+     }
+ 
+-  if (preamble == WIFI_PREAMBLE_NONE && aMpdu.packetType == 2)
++  if (preamble == WIFI_PREAMBLE_NONE && mpdutype == LAST_MPDU_IN_AGGREGATE)
+     {
+       m_plcpSuccess = false;
+     }
+@@ -1336,11 +1406,24 @@
+   return m_greenfield;
+ }
+ 
++bool
++YansWifiPhy::GetShortPlcpPreambleSupported (void) const
++{
++  return m_shortPreamble;
++}
++
++void
++YansWifiPhy::SetShortPlcpPreambleSupported (bool enable)
++{
++  m_shortPreamble = enable;
++}
++
+ void
+ YansWifiPhy::SetChannelWidth (uint32_t channelwidth)
+ {
+   NS_ASSERT_MSG (channelwidth == 5 || channelwidth == 10 || channelwidth == 20 || channelwidth == 22 || channelwidth == 40 || channelwidth == 80 || channelwidth == 160, "wrong channel width value");
+   m_channelWidth = channelwidth;
++  AddSupportedChannelWidth (channelwidth);
+ }
+ 
+ uint32_t

@@ -1,0 +1,183 @@
+diff -Naur ns-3.24/bindings/python/wscript ns-3.24.1/bindings/python/wscript
+--- ns-3.24/bindings/python/wscript	2015-09-15 11:18:44.000000000 -0700
++++ ns-3.24.1/bindings/python/wscript	2015-09-23 12:28:41.000000000 -0700
+@@ -152,7 +152,7 @@
+     else:
+         # ns-3-dev uses ../pybindgen, while ns-3 releases use ../REQUIRED_PYBINDGEN_VERSION
+         pybindgen_dir = os.path.join('..', "pybindgen")
+-        pybindgen_release_str = "pybindgen-" + '.'.join([str(x) for x in REQUIRED_PYBINDGEN_VERSION])
++        pybindgen_release_str = "pybindgen-" + REQUIRED_PYBINDGEN_VERSION
+         pybindgen_release_dir = os.path.join('..', pybindgen_release_str)
+         if os.path.isdir(pybindgen_dir):
+             conf.msg("Checking for pybindgen location", ("%s (guessed)" % pybindgen_dir))
+diff -Naur ns-3.24/doc/models/Makefile ns-3.24.1/doc/models/Makefile
+--- ns-3.24/doc/models/Makefile	2015-09-15 11:18:44.000000000 -0700
++++ ns-3.24.1/doc/models/Makefile	2015-09-28 20:17:55.000000000 -0700
+@@ -39,6 +39,10 @@
+ 	$(SRC)/fd-net-device/doc/fd-net-device.rst \
+ 	$(SRC)/tap-bridge/doc/tap.rst \
+ 	$(SRC)/mesh/doc/source/mesh.rst \
++	$(SRC)/mesh/doc/source/mesh-user.rst \
++	$(SRC)/mesh/doc/source/mesh-design.rst \
++	$(SRC)/mesh/doc/source/mesh-references.rst \
++	$(SRC)/mesh/doc/source/mesh-testing.rst \
+ 	$(SRC)/lte/doc/source/lte.rst \
+ 	$(SRC)/lte/doc/source/lte-user.rst \
+ 	$(SRC)/lte/doc/source/lte-design.rst \
+diff -Naur ns-3.24/RELEASE_NOTES ns-3.24.1/RELEASE_NOTES
+--- ns-3.24/RELEASE_NOTES	2015-09-15 14:02:37.000000000 -0700
++++ ns-3.24.1/RELEASE_NOTES	2015-09-30 12:15:32.000000000 -0700
+@@ -9,13 +9,58 @@
+ Consult the file CHANGES.html for more detailed information about changed
+ API and behavior across ns-3 releases.
+ 
++Release 3.24.1
++==============
++
++Release 3.24.1 is a maintenance release that fixes three issues:
++- support for Xcode 7 clang compiler version
++- detection of Python bindings location
++- compilation problem on 32-bit gcc-4.4 machine
++
++The issues prevented selected systems from being able to successfully
++build ns-3, and prevented the released version from being able to
++detect the presence of pybindgen used for Python bindings.
++
++Availability
++------------
++This release is available from:
++https://www.nsnam.org/release/ns-allinone-3.24.1.tar.bz2
++
++Supported platforms
++-------------------
++This release has been tested on the following platforms:
++- Ubuntu 15.04 (64 bit) with g++-4.9.2
++- Fedora Core 22 (32 bit) with g++-5.1.1
++- Fedora Core 21 (64 bit) with g++-4.9.2
++- Ubuntu 14.04 (64 bit) with g++-4.8.2
++- Ubuntu 12.04.4 (64 bit) with g++-4.6.3
++- CentOS/RHEL 6.7 (64-bit) with g++-4.4.7
++- OS X Yosemite 10.10.5 with Xcode 7 and Apple LLVM version 7.0.0
++- OS X Yosemite 10.10.5 with Xcode 6.4 and Apple LLVM version 6.1.0
++- FreeBSD 10.2-RELEASE (64 bit) with clang-3.4.1
++
++New user-visible features
++-------------------------
++Features are identical to release 3.24.
++
++Bugs fixed
++----------
++- Bug 2181 - Xcode 7.0 compiler warnings trigger build failure
++- Bug 2182 - pybindgen required version is now a string literal
++- Bug 2184 - integer overflow in MacLow
++
++Known issues
++------------
++In general, known issues are tracked on the project tracker available
++at http://www.nsnam.org/bugzilla/
++
+ Release 3.24
+ ============
+ 
+ Availability
+ ------------
+ This release is available from:
+-https://www.nsnam.org/release/ns-allinone-3.24.tar.bz2
++http://www.nsnam.org/release/ns-allinone-3.24.tar.bz2
+ 
+ Supported platforms
+ -------------------
+@@ -26,7 +71,7 @@
+ - Ubuntu 14.04 (64 bit) with g++-4.8.2
+ - Ubuntu 12.04.4 (32/64 bit) with g++-4.6.3
+ - CentOS/RHEL 6.7 (64-bit) with g++-4.4.7
+-- OS X Yosemite 10.10.4 with Xcode 6.4 and Apple LLVM version 6.1.0
++- OS X Yosemite 10.10.5 with Xcode 6.4 and Apple LLVM version 6.1.0
+ - FreeBSD 10.1-RELEASE (64 bit) with clang-3.4.1
+ 
+ New user-visible features
+diff -Naur ns-3.24/src/wifi/doc/source/wifi-user.rst ns-3.24.1/src/wifi/doc/source/wifi-user.rst
+--- ns-3.24/src/wifi/doc/source/wifi-user.rst	2015-09-15 11:18:44.000000000 -0700
++++ ns-3.24.1/src/wifi/doc/source/wifi-user.rst	2015-09-28 20:17:55.000000000 -0700
+@@ -228,7 +228,7 @@
+ This object can be also used to set in the same way as ``ns3::QosWifiMacHelper``.
+ 
+ VhtWifiMacHelper
+-+++++++++++++++
++++++++++++++++++
+ 
+ The ``ns3::VhtWifiMacHelper`` configures an
+ object factory to create instances of a ``ns3::WifiMac``. It is used to
+diff -Naur ns-3.24/src/wifi/helper/wifi-radio-energy-model-helper.h ns-3.24.1/src/wifi/helper/wifi-radio-energy-model-helper.h
+--- ns-3.24/src/wifi/helper/wifi-radio-energy-model-helper.h	2015-09-15 11:18:44.000000000 -0700
++++ ns-3.24.1/src/wifi/helper/wifi-radio-energy-model-helper.h	2015-09-28 20:17:55.000000000 -0700
+@@ -89,7 +89,7 @@
+    * \param n7 the name of the attribute to set
+    * \param v7 the value of the attribute to set
+    *
+-   * Configure a propagation delay for this channel.
++   * Configure a Transmission Current model for this EnergySource.
+    */
+   void SetTxCurrentModel (std::string name,
+                           std::string n0 = "", const AttributeValue &v0 = EmptyAttributeValue (),
+diff -Naur ns-3.24/src/wifi/model/mac-low.cc ns-3.24.1/src/wifi/model/mac-low.cc
+--- ns-3.24/src/wifi/model/mac-low.cc	2015-09-15 11:18:44.000000000 -0700
++++ ns-3.24.1/src/wifi/model/mac-low.cc	2015-09-28 20:26:16.000000000 -0700
+@@ -1662,7 +1662,7 @@
+             }
+           preamble = WIFI_PREAMBLE_NONE;
+         }
+-      m_mpduReferenceNumber = ((m_mpduReferenceNumber + 1) % 4294967296);
++      m_mpduReferenceNumber += 1;  // this variable is allowed to overflow
+     }
+ }
+ 
+diff -Naur ns-3.24/VERSION ns-3.24.1/VERSION
+--- ns-3.24/VERSION	2015-09-15 11:23:43.000000000 -0700
++++ ns-3.24.1/VERSION	2015-09-30 12:12:04.000000000 -0700
+@@ -1 +1 @@
+-3.24
++3.24.1
+diff -Naur ns-3.24/wscript ns-3.24.1/wscript
+--- ns-3.24/wscript	2015-09-15 11:18:44.000000000 -0700
++++ ns-3.24.1/wscript	2015-09-24 17:56:45.000000000 -0700
+@@ -30,10 +30,20 @@
+ examples_enabled = False
+ tests_enabled    = False
+ 
++# Compiler warning suppressions
++
+ # Bug 1868:  be conservative about -Wstrict-overflow for optimized builds
+ # on older compilers; it can generate spurious warnings.  
+ cc_version_warn_strict_overflow = ('4', '8', '2')
+ 
++# Bug 2181:  clang warnings about unused local typedefs and potentially
++# evaluated expressions affecting darwin clang/LLVM version 7.0.0 (Xcode 7)
++# or clang/LLVM version 3.6 or greater.  We must make this platform-specific.
++darwin_clang_version_warn_unused_local_typedefs = ('7', '0', '0')
++darwin_clang_version_warn_potentially_evaluated = ('7', '0', '0')
++clang_version_warn_unused_local_typedefs = ('3', '6', '0')
++clang_version_warn_potentially_evaluated = ('3', '6', '0')
++
+ # Get the information out of the NS-3 configuration file.
+ config_file_exists = False
+ (config_file_exists, modules_enabled, examples_enabled, tests_enabled) = read_config_file()
+@@ -374,6 +384,18 @@
+             if conf.check_compilation_flag('-Wl,--soname=foo'):
+                 env['WL_SONAME_SUPPORTED'] = True
+ 
++    # bug 2181 on clang warning suppressions
++    if conf.env['CXX_NAME'] in ['clang']:
++        if Options.platform == 'darwin':
++            if conf.env['CC_VERSION'] >= darwin_clang_version_warn_unused_local_typedefs:
++                env.append_value('CXXFLAGS', '-Wno-unused-local-typedefs')
++            if conf.env['CC_VERSION'] >= darwin_clang_version_warn_potentially_evaluated: 
++                env.append_value('CXXFLAGS', '-Wno-potentially-evaluated-expression')
++        else:
++            if conf.env['CC_VERSION'] >= clang_version_warn_unused_local_typedefs:
++                env.append_value('CXXFLAGS', '-Wno-unused-local-typedefs')
++            if conf.env['CC_VERSION'] >= clang_version_warn_potentially_evaluated: 
++                env.append_value('CXXFLAGS', '-Wno-potentially-evaluated-expression')
+     env['ENABLE_STATIC_NS3'] = False
+     if Options.options.enable_static:
+         if Options.platform == 'darwin':

@@ -59,7 +59,7 @@ private:
   /**
    * Return BER of BPSK at the given SNR.
    *
-   * \param snr snr value
+   * \param snr snr ratio (not dB)
    *
    * \return BER of BPSK at the given SNR
    */
@@ -67,7 +67,7 @@ private:
   /**
    * Return BER of QPSK at the given SNR.
    *
-   * \param snr snr value
+   * \param snr snr ratio (not dB)
    *
    * \return BER of QPSK at the given SNR
    */
@@ -75,7 +75,7 @@ private:
   /**
    * Return BER of QAM16 at the given SNR.
    *
-   * \param snr snr value
+   * \param snr snr ratio (not dB)
    *
    * \return BER of QAM16 at the given SNR
    */
@@ -83,7 +83,7 @@ private:
   /**
    * Return BER of QAM64 at the given SNR.
    *
-   * \param snr snr value
+   * \param snr snr ratio (not dB)
    *
    * \return BER of QAM64 at the given SNR
    */
@@ -102,7 +102,7 @@ private:
   /**
    * Return BER of QPSK at the given SNR after applying FEC.
    *
-   * \param snr snr value
+   * \param snr snr ratio (not dB)
    * \param nbits the number of bits in the chunk
    * \param bValue
    *
@@ -113,7 +113,7 @@ private:
   /**
    * Return BER of QAM16 at the given SNR after applying FEC.
    *
-   * \param snr snr value
+   * \param snr snr ratio (not dB)
    * \param nbits the number of bits in the chunk
    * \param bValue
    *
@@ -124,7 +124,7 @@ private:
   /**
    * Return BER of QAM64 at the given SNR after applying FEC.
    *
-   * \param snr snr value
+   * \param snr snr ratio (not dB)
    * \param nbits the number of bits in the chunk
    * \param bValue
    *

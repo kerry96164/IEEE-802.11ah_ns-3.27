@@ -1,0 +1,20 @@
+--- src/wifi/model/nist-error-rate-model.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/nist-error-rate-model.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -249,14 +260,15 @@
+ double
+ NistErrorRateModel::GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, double snr, uint32_t nbits) const
+ {
++  NS_LOG_FUNCTION (this << mode << txVector.GetMode () << snr << nbits);
+   if (mode.GetModulationClass () == WIFI_MOD_CLASS_ERP_OFDM
+       || mode.GetModulationClass () == WIFI_MOD_CLASS_OFDM
+       || mode.GetModulationClass () == WIFI_MOD_CLASS_HT
+       || mode.GetModulationClass () == WIFI_MOD_CLASS_VHT)
+     {
+-      if (mode.GetConstellationSize (1) == 2)
++      if (mode.GetConstellationSize () == 2)
+         {
+-          if (mode.GetCodeRate (1) == WIFI_CODE_RATE_1_2)
++          if (mode.GetCodeRate () == WIFI_CODE_RATE_1_2)
+             {
+               return GetFecBpskBer (snr,
+                                     nbits,

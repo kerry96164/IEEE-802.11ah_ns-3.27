@@ -1,0 +1,16 @@
+--- src/wifi/model/wifi-mac.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/wifi-mac.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -352,10 +353,9 @@
+ {
+   SetSifs (MicroSeconds (10));
+   // Slot time defaults to the "long slot time" of 20 us in the standard
+-  // according to mixed 802.11b/g deployments.  Short slot time is supported
+-  // if the user sets the slot to 9 us *after* calling Configure80211g().
+-  // The other parameters below should also be adjusted accordingly as they
+-  // depend on slot time.
++  // according to mixed 802.11b/g deployments.  Short slot time is enabled
++  // if the user sets the ShortSlotTimeSupported flag to true and when the BSS
++  // consists of only ERP STAs capable of supporting this option.
+   SetSlot (MicroSeconds (20));
+   SetEifsNoDifs (MicroSeconds (10 + 304));
+   SetPifs (MicroSeconds (10 + 20));

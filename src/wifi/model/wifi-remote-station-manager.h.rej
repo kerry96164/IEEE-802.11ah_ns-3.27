@@ -1,0 +1,80 @@
+--- src/wifi/model/wifi-remote-station-manager.h	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/wifi-remote-station-manager.h	2016-03-23 21:36:53.000000000 -0700
+@@ -206,6 +212,57 @@
+    * \return true if VHT capability support is enabled, false otherwise
+    */
+   bool HasVhtSupported (void) const;
++  /**
++   * Sets the protection mode.
++   *
++   * \param mode the protection mode
++   */
++  void SetProtectionMode (ProtectionMode mode);
++  /**
++   * Return the protection mode.
++   *
++   * \return the protection mode
++   */
++  ProtectionMode GetProtectionMode (void) const;
++  /**
++   * Enable or disable protection for non-ERP stations.
++   *
++   * \param enable enable or disable protection for non-ERP stations
++   */
++  void SetUseNonErpProtection (bool enable);
++  /**
++   * Return whether the device supports protection of non-ERP stations.
++   *
++   * \return true if protection for non-ERP stations is enabled, 
++   *         false otherwise
++   */
++  bool GetUseNonErpProtection (void) const;
++  /**
++   * Enable or disable short PLCP preambles.
++   *
++   * \param enable enable or disable short PLCP preambles
++   */
++  void SetShortPreambleEnabled (bool enable);
++  /**
++   * Return whether the device uses short PLCP preambles.
++   *
++   * \return true if short PLCP preambles are enabled,
++   *         false otherwise
++   */
++  bool GetShortPreambleEnabled (void) const;
++  /**
++   * Enable or disable short slot time.
++   *
++   * \param enable enable or disable short slot time
++   */
++  void SetShortSlotTimeEnabled (bool enable);
++  /**
++   * Return whether the device uses short slot time.
++   *
++   * \return true if short slot time is enabled,
++   *         false otherwise
++   */
++  bool GetShortSlotTimeEnabled (void) const;
+ 
+   /**
+    * Reset the station, invoked in a STA upon dis-association or in an AP upon reboot.
+@@ -1236,12 +1414,15 @@
+ 
+   uint32_t m_channelWidth;    //!< Channel width (in MHz) supported by the remote station
+   bool m_shortGuardInterval;  //!< Flag if short guard interval is supported by the remote station
+-  uint32_t m_rx;              //!< Number of RX antennas of the remote station
+-  uint32_t m_tx;              //!< Number of TX antennas of the remote station
++  uint8_t m_rx;               //!< Number of supported RX streams by the remote station
+   uint32_t m_ness;            //!< Number of streams in beamforming of the remote station
+-  bool m_stbc;                //!< Flag if STBC is used by the remote station
++  bool m_stbc;                //!< Flag if STBC is supported by the remote station
+   bool m_aggregation;         //!< Flag if MPDU aggregation is used by the remote station
+-  bool m_greenfield;          //!< Flag if green field is used by the remote station
++  bool m_greenfield;          //!< Flag if greenfield is supported by the remote station
++  bool m_shortPreamble;       //!< Flag if short PLCP preamble is supported by the remote station
++  bool m_shortSlotTime;       //!< Flag if short ERP slot time is supported by the remote station
++  bool m_htSupported;         //!< Flag if HT is supported by the station
++  bool m_vhtSupported;        //!< Flag if VHT is supported by the station
+ };
+ 
+ /**

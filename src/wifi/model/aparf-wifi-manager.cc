@@ -317,9 +317,9 @@ AparfWifiManager::DoReportFinalDataFailed (WifiRemoteStation *station)
 }
 
 WifiTxVector
-AparfWifiManager::DoGetDataTxVector (WifiRemoteStation *st, uint32_t size)
+AparfWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
 {
-  NS_LOG_FUNCTION (this << st << size);
+  NS_LOG_FUNCTION (this << st);
   AparfWifiRemoteStation *station = (AparfWifiRemoteStation *) st;
   CheckInit (station);
   return WifiTxVector (GetSupported (station, station->m_rate), station->m_power, GetLongRetryCount (station), GetShortGuardInterval (station), Min (GetNumberOfReceiveAntennas (station),GetNumberOfTransmitAntennas ()), GetNumberOfTransmitAntennas (station), GetStbc (station));

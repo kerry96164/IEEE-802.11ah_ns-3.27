@@ -19,6 +19,7 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
+
 #ifndef WIFI_MAC_HEADER_H
 #define WIFI_MAC_HEADER_H
 

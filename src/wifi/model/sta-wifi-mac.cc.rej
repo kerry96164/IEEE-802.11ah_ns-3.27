@@ -1,0 +1,68 @@
+--- src/wifi/model/sta-wifi-mac.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/sta-wifi-mac.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -647,11 +728,50 @@
+             {
+               SetState (ASSOCIATED);
+               NS_LOG_DEBUG ("assoc completed");
++              CapabilityInformation capabilities = assocResp.GetCapabilities ();
+               SupportedRates rates = assocResp.GetSupportedRates ();
++              bool isShortPreambleEnabled = capabilities.IsShortPreamble ();
++              if (m_erpSupported)
++                {
++                  bool isErpAllowed = false;
++                  for (uint32_t i = 0; i < m_phy->GetNModes (); i++)
++                  {
++                    WifiMode mode = m_phy->GetMode (i);
++                    if (mode.GetModulationClass () == WIFI_MOD_CLASS_ERP_OFDM && rates.IsSupportedRate (mode.GetDataRate (m_phy->GetChannelWidth (), false, 1)))
++                      {
++                        isErpAllowed = true;
++                        break;
++                      }
++                  }
++                  if (!isErpAllowed)
++                    {
++                      //disable short slot time and set cwMin to 31
++                      SetSlot (MicroSeconds (20));
++                      ConfigureContentionWindow (31, 1023);
++                    }
++                  else
++                    {
++                      ErpInformation erpInformation = assocResp.GetErpInformation ();
++                      isShortPreambleEnabled &= !erpInformation.GetBarkerPreambleMode ();
++                      if (m_stationManager->GetShortSlotTimeEnabled ())
++                        {
++                          //enable short slot time
++                          SetSlot (MicroSeconds (9));
++                        }
++                      else
++                        {
++                          //disable short slot time
++                          SetSlot (MicroSeconds (20));
++                        }
++                    }
++                }
++              m_stationManager->SetShortPreambleEnabled (isShortPreambleEnabled);
++              m_stationManager->SetShortSlotTimeEnabled (capabilities.IsShortSlotTime ());
+               if (m_htSupported)
+                 {
+                   HtCapabilities htcapabilities = assocResp.GetHtCapabilities ();
+-                  m_stationManager->AddStationHtCapabilities (hdr->GetAddr2 (),htcapabilities);
++                  HtOperations htOperations = assocResp.GetHtOperations ();
++                  m_stationManager->AddStationHtCapabilities (hdr->GetAddr2 (), htcapabilities);
+                 }
+               if (m_vhtSupported)
+                 {
+@@ -662,10 +782,11 @@
+               for (uint32_t i = 0; i < m_phy->GetNModes (); i++)
+                 {
+                   WifiMode mode = m_phy->GetMode (i);
+-                  if (rates.IsSupportedRate (mode.GetDataRate (m_phy->GetChannelWidth (), false, 1)))
++                  uint8_t nss = 1; // Assume 1 spatial stream
++                  if (rates.IsSupportedRate (mode.GetDataRate (m_phy->GetChannelWidth (), false, nss)))
+                     {
+                       m_stationManager->AddSupportedMode (hdr->GetAddr2 (), mode);
+-                      if (rates.IsBasicRate (mode.GetDataRate (m_phy->GetChannelWidth (), false, 1)))
++                      if (rates.IsBasicRate (mode.GetDataRate (m_phy->GetChannelWidth (), false, nss)))
+                         {
+                           m_stationManager->AddBasicMode (mode);
+                         }

@@ -167,8 +167,9 @@ public:
    *
    * \param packet the packet that we failed to received
    * \param snr the SNR of the received packet
+   * \param isEndOfFrame PHY-RXEND indication.
    */
-  void SwitchFromRxEndError (Ptr<const Packet> packet, double snr);
+  void SwitchFromRxEndError (Ptr<Packet> packet, double snr, bool isEndOfFrame);
   /**
    * Switch to CCA busy.
    *

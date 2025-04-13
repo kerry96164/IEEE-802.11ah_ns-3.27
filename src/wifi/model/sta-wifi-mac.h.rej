@@ -1,0 +1,31 @@
+--- src/wifi/model/sta-wifi-mac.h	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/sta-wifi-mac.h	2016-03-23 21:36:53.000000000 -0700
+@@ -28,6 +28,7 @@
+ #include "ns3/traced-callback.h"
+ #include "supported-rates.h"
+ #include "amsdu-subframe-header.h"
++#include "capability-information.h"
+ 
+ namespace ns3  {
+ 
+@@ -171,17 +172,11 @@
+    */
+   void SetState (enum MacState value);
+   /**
+-   * Return the HT capability of the current AP.
++   * Return the Capability information of the current STA.
+    *
+-   * \return the HT capability that we support
++   * \return the Capability information that we support
+    */
+-  HtCapabilities GetHtCapabilities (void) const;
+-  /**
+-   * Return the VHT capability of the current AP.
+-   *
+-   * \return the VHT capability that we support
+-   */
+-  VhtCapabilities GetVhtCapabilities (void) const;
++  CapabilityInformation GetCapabilities (void) const;
+ 
+   enum MacState m_state;
+   Time m_probeRequestTimeout;

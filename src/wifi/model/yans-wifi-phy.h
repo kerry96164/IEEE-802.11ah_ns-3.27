@@ -108,15 +108,14 @@ public:
    * \param rxPowerDbm the receive power in dBm
    * \param txVector the TXVECTOR of the arriving packet
    * \param preamble the preamble of the arriving packet
-   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
-   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
+   * \param mpdutype the type of the MPDU as defined in WifiPhy::mpduType.
    * \param rxDuration the duration needed for the reception of the packet
    */
   void StartReceivePreambleAndHeader (Ptr<Packet> packet,
                                       double rxPowerDbm,
                                       WifiTxVector txVector,
                                       WifiPreamble preamble,
-                                      struct mpduInfo aMpdu,
+                                      enum mpduType mpdutype,
                                       Time rxDuration);
   /**
    * Starting receiving the payload of a packet (i.e. the first bit of the packet has arrived).
@@ -124,14 +123,13 @@ public:
    * \param packet the arriving packet
    * \param txVector the TXVECTOR of the arriving packet
    * \param preamble the preamble of the arriving packet
-   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
-   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
+   * \param mpdutype the type of the MPDU as defined in WifiPhy::mpduType.
    * \param event the corresponding event of the first time the packet arrives
    */
   void StartReceivePacket (Ptr<Packet> packet,
                            WifiTxVector txVector,
                            WifiPreamble preamble,
-                           struct mpduInfo aMpdu,
+                           enum mpduType mpdutype,
                            Ptr<InterferenceHelper::Event> event);
 
   /**
@@ -282,7 +280,8 @@ public:
 
   virtual void SetReceiveOkCallback (WifiPhy::RxOkCallback callback);
   virtual void SetReceiveErrorCallback (WifiPhy::RxErrorCallback callback);
-  virtual void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, enum WifiPreamble preamble, uint8_t packetType, uint32_t mpduReferenceNumber);
+  virtual void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, enum WifiPreamble preamble);
+  virtual void SendPacket (Ptr<const Packet> packet, WifiTxVector txVector, enum WifiPreamble preamble, enum mpduType mpdutype);
   virtual void RegisterListener (WifiPhyListener *listener);
   virtual void UnregisterListener (WifiPhyListener *listener);
   virtual void SetSleepMode (void);
@@ -301,7 +300,7 @@ public:
   virtual WifiMode GetMode (uint32_t mode) const;
   virtual bool IsModeSupported (WifiMode mode) const;
   virtual bool IsMcsSupported (WifiMode mcs);
-  virtual double CalculateSnr (WifiMode txMode, double ber) const;
+  virtual double CalculateSnr (WifiTxVector txVector, double ber) const;
   virtual Ptr<WifiChannel> GetChannel (void) const;
 
   virtual void ConfigureStandard (enum WifiPhyStandard standard);
@@ -412,6 +411,18 @@ public:
    */
   virtual bool GetS1gLongfield (void) const;
   /**
+   * Enable or disable short PLCP preamble.
+   *
+   * \param preamble sets whether short PLCP preamble is supported or not
+   */
+  virtual void SetShortPlcpPreambleSupported (bool preamble);
+  /**
+   * Return whether short PLCP preamble is supported.
+   *
+   * \returns if short PLCP preamble is supported or not
+   */
+  virtual bool GetShortPlcpPreambleSupported (void) const;
+  /**
    * Return channel width.
    *
    * \return channel width
@@ -424,6 +435,10 @@ public:
    */
   virtual void SetChannelWidth (uint32_t channelwidth);
 
+  virtual uint8_t GetSupportedRxSpatialStreams (void) const;
+  virtual uint8_t GetSupportedTxSpatialStreams (void) const;
+  virtual void AddSupportedChannelWidth (uint32_t width);
+  virtual std::vector<uint32_t> GetSupportedChannelWidthSet (void) const;
   virtual uint32_t GetNBssMembershipSelectors (void) const;
   virtual uint32_t GetBssMembershipSelector (uint32_t selector) const;
   virtual WifiModeList GetMembershipSelectorModes (uint32_t selector);
@@ -482,6 +497,11 @@ private:
    */
   void Configure80211ah (void);
   /**
+   * Configure the device Mcs set with the appropriate HtMcs modes for
+   * the number of available transmit spatial streams
+   */
+  void ConfigureHtDeviceMcsSet (void);
+  /**
    * Return the energy detection threshold.
    *
    * \return the energy detection threshold.
@@ -533,11 +553,10 @@ private:
    *
    * \param packet the packet that the last bit has arrived
    * \param preamble the preamble of the arriving packet
-   * \param aMpdu the type of the packet (0 is not A-MPDU, 1 is a MPDU that is part of an A-MPDU and 2 is the last MPDU in an A-MPDU)
-   *        and the A-MPDU reference number (must be a different value for each A-MPDU but the same for each subframe within one A-MPDU)
+   * \param mpdutype the type of the MPDU as defined in WifiPhy::mpduType.
    * \param event the corresponding event of the first time the packet arrives
    */
-  void EndReceive (Ptr<Packet> packet, enum WifiPreamble preamble, struct mpduInfo aMpdu, Ptr<InterferenceHelper::Event> event);
+  void EndReceive (Ptr<Packet> packet, enum WifiPreamble preamble, enum mpduType mpdutype, Ptr<InterferenceHelper::Event> event);
 
   bool     m_initialized;         //!< Flag for runtime initialization
   double   m_edThresholdW;        //!< Energy detection threshold in watts
@@ -614,6 +633,8 @@ private:
   Time m_channelSwitchDelay;            //!< Time required to switch between channel
   uint16_t m_mpdusNum;                  //!< carries the number of expected mpdus that are part of an A-MPDU
   bool m_plcpSuccess;                   //!< Flag if the PLCP of the packet or the first MPDU in an A-MPDU has been received
+  uint32_t m_txMpduReferenceNumber;     //!< A-MPDU reference number to identify all transmitted subframes belonging to the same received A-MPDU
+  uint32_t m_rxMpduReferenceNumber;     //!< A-MPDU reference number to identify all received subframes belonging to the same received A-MPDU
 };
 
 } //namespace ns3

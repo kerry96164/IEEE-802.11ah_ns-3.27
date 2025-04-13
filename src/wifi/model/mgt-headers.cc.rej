@@ -1,0 +1,86 @@
+--- src/wifi/model/mgt-headers.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/mgt-headers.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -402,15 +446,33 @@
+ }
+ 
+ void
++MgtAssocRequestHeader::SetListenInterval (uint16_t interval)
++{
++  m_listenInterval = interval;
++}
++
++void
++MgtAssocRequestHeader::SetCapabilities (CapabilityInformation capabilities)
++{
++  m_capability = capabilities;
++}
++
++CapabilityInformation
++MgtAssocRequestHeader::GetCapabilities (void) const
++{
++  return m_capability;
++}
++
++void
+ MgtAssocRequestHeader::SetHtCapabilities (HtCapabilities htcapabilities)
+ {
+   m_htCapability = htcapabilities;
+ }
+ 
+-void
+-MgtAssocRequestHeader::SetListenInterval (uint16_t interval)
++HtCapabilities
++MgtAssocRequestHeader::GetHtCapabilities (void) const
+ {
+-  m_listenInterval = interval;
++  return m_htCapability;
+ }
+ 
+ void
+@@ -425,12 +487,6 @@
+   return m_vhtCapability;
+ }
+ 
+-HtCapabilities
+-MgtAssocRequestHeader::GetHtCapabilities (void) const
+-{
+-  return m_htCapability;
+-}
+-
+ Ssid
+ MgtAssocRequestHeader::GetSsid (void) const
+ {
+@@ -474,9 +530,9 @@
+   size += 2;
+   size += m_ssid.GetSerializedSize ();
+   size += m_rates.GetSerializedSize ();
++  size += m_rates.extended.GetSerializedSize ();
+   size += m_htCapability.GetSerializedSize ();
+   size += m_vhtCapability.GetSerializedSize ();
+-  size += m_rates.extended.GetSerializedSize ();
+   return size;
+ }
+ 
+@@ -604,12 +690,19 @@
+   return m_vhtCapability;
+ }
+ 
+-HtCapabilities
+-MgtAssocResponseHeader::GetHtCapabilities (void) const
++void
++MgtAssocResponseHeader::SetErpInformation (ErpInformation erpInformation)
+ {
+-  return m_htCapability;
++  m_erpInformation = erpInformation;
+ }
+ 
++ErpInformation
++MgtAssocResponseHeader::GetErpInformation (void) const
++{
++  return m_erpInformation;
++}
++
++
+ TypeId
+ MgtAssocResponseHeader::GetTypeId (void)
+ {

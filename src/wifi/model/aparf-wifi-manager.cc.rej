@@ -1,0 +1,20 @@
+--- src/wifi/model/aparf-wifi-manager.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/aparf-wifi-manager.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -345,7 +345,16 @@
+       //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
+       channelWidth = 20;
+     }
+-  return WifiTxVector (GetSupported (station, 0), GetDefaultTxPowerLevel (), GetShortRetryCount (station), false, 1, 0, channelWidth, GetAggregation (station), false);
++  WifiTxVector rtsTxVector;
++  if (GetUseNonErpProtection () == false)
++    {
++      rtsTxVector = WifiTxVector (GetSupported (station, 0), GetDefaultTxPowerLevel (), GetShortRetryCount (station), false, 1, 0, channelWidth, GetAggregation (station), false);
++    }
++  else
++    {
++      rtsTxVector = WifiTxVector (GetNonErpSupported (station, 0), GetDefaultTxPowerLevel (), GetShortRetryCount (station), false, 1, 0, channelWidth, GetAggregation (station), false);
++    }
++  return rtsTxVector;
+ }
+ 
+ bool

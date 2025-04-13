@@ -36,6 +36,8 @@
 #include <list>
 #include "ns3/traced-callback.h"
 
+class AmpduAggregationTest;
+
 namespace ns3 {
 
 class DcfState;
@@ -48,6 +50,7 @@ class WifiMacQueue;
 class RandomStream;
 class QosBlockedDestinations;
 class MsduAggregator;
+class MpduAggregator;
 class MgtAddBaResponseHeader;
 class BlockAckManager;
 class MgtDelBaHeader;
@@ -83,6 +86,9 @@ enum TypeOfStation
 class EdcaTxopN : public Dcf
 {
 public:
+  // Allow test cases to access private members
+  friend class ::AmpduAggregationTest;
+
   /**
    * typedef for a callback to invoke when a
    * packet transmission was completed successfully.
@@ -185,6 +191,8 @@ public:
   Ptr<MacLow> Low (void);
 
   Ptr<MsduAggregator> GetMsduAggregator (void) const;
+  Ptr<MpduAggregator> GetMpduAggregator (void) const;
+
   /**
    * \param recipient address of the peer station
    * \param tid traffic ID.
@@ -280,17 +288,19 @@ public:
    *
    * \param blockAck
    * \param recipient
+   * \param rxSnr SNR of the block ack itself
    * \param txMode
+   * \param dataSnr reported data SNR from the peer
    */
-  void GotBlockAck (const CtrlBAckResponseHeader *blockAck, Mac48Address recipient, WifiMode txMode);
+  void GotBlockAck (const CtrlBAckResponseHeader *blockAck, Mac48Address recipient, double rxSnr, WifiMode txMode, double dataSnr);
   /**
    * Event handler when a Block ACK timeout has occurred.
    */
-  void MissedBlockAck (void);
+  void MissedBlockAck (uint32_t nMpdus);
   void GotAddBaResponse (const MgtAddBaResponseHeader *respHdr, Mac48Address recipient);
   void GotDelBaFrame (const MgtDelBaHeader *delBaHdr, Mac48Address recipient);
   /**
-   * Event handler when an ACK is received.
+   * Event handler when an ACK is missed.
    */
   void MissedAck (void);
   /**
@@ -316,13 +326,6 @@ public:
    */
   void StartAccessIfNeeded (void);
   void StartAccessIfNeededRaw (void);
-  /**
-   * Check if the current packet should be sent with a RTS protection.
-   *
-   * \return true if RTS protection should be used,
-   *         false otherwise
-   */
-  bool NeedRts (void);
   /**
    * Check if RTS should be re-transmitted if CTS was missed.
    *
@@ -408,6 +411,7 @@ public:
   void Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr);
 
   void SetMsduAggregator (Ptr<MsduAggregator> aggr);
+  void SetMpduAggregator (Ptr<MpduAggregator> aggr);
 
   /**
    * \param packet packet to send
@@ -440,8 +444,8 @@ public:
   void SetBlockAckInactivityTimeout (uint16_t timeout);
   void SendDelbaFrame (Mac48Address addr, uint8_t tid, bool byOriginator);
   void CompleteMpduTx (Ptr<const Packet> packet, WifiMacHeader hdr, Time tstamp);
-  bool GetAmpduExist (void);
-  void SetAmpduExist (bool ampdu);
+  bool GetAmpduExist (Mac48Address dest);
+  void SetAmpduExist (Mac48Address dest, bool enableAmpdu);
 
   /**
    * Return the next sequence number for the given header.
@@ -582,7 +586,8 @@ private:
   Ptr<const Packet> m_currentPacket;
 
   WifiMacHeader m_currentHdr;
-  Ptr<MsduAggregator> m_aggregator;
+  Ptr<MsduAggregator> m_msduAggregator;
+  Ptr<MpduAggregator> m_mpduAggregator;
   TypeOfStation m_typeOfStation;
   QosBlockedDestinations *m_qosBlockedDestinations;
   BlockAckManager *m_baManager;

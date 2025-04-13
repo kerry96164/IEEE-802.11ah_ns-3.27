@@ -1,0 +1,18 @@
+--- src/wifi/model/wifi-phy-state-helper.h	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/wifi-phy-state-helper.h	2016-03-23 21:36:53.000000000 -0700
+@@ -215,11 +216,12 @@
+   /**
+    * TracedCallback signature for receive end error event.
+    *
+-   * \param [in] packet The received packet.
+-   * \param [in] snr    The SNR of the received packet.
++   * \param [in] packet       The received packet.
++   * \param [in] snr          The SNR of the received packet.
++   * \param [in] isEndOfFrame PHY-RXEND indication..
+    */
+   typedef void (* RxEndErrorTracedCallback)
+-    (Ptr<const Packet> packet, double snr);
++    (Ptr<const Packet> packet, double snr, bool isEndOfFrame);
+ 
+   /**
+    * TracedCallback signature for transmit event.

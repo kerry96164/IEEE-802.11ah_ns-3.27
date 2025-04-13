@@ -83,8 +83,7 @@ public:
    */
   SimpleRefCount (const SimpleRefCount &o)
     : m_count (1)
-  {
-  }
+  {}
   /**
    * Assignment
    */

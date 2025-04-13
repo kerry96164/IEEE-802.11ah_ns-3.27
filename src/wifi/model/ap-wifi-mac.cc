@@ -193,6 +193,9 @@ ApWifiMac::ApWifiMac ()
 ApWifiMac::~ApWifiMac ()
 {
   NS_LOG_FUNCTION (this);
+  m_staList.clear();
+  m_nonErpStations.clear ();
+  m_nonHtStations.clear ();
 }
 
 void
@@ -412,6 +415,44 @@ ApWifiMac::AssignStreams (int64_t stream)
   NS_LOG_FUNCTION (this << stream);
   m_beaconJitter->SetStream (stream);
   return 1;
+}
+
+bool
+ApWifiMac::GetShortSlotTimeEnabled (void) const
+{
+  if (m_nonErpStations.size () != 0)
+    {
+      return false;
+    }
+  if (m_erpSupported == true && GetShortSlotTimeSupported () == true)
+    {
+      for (std::list<Mac48Address>::const_iterator i = m_staList.begin (); i != m_staList.end (); i++)
+      {
+        if (m_stationManager->GetShortSlotTimeSupported (*i) == false)
+          {
+            return false;
+          }
+      }
+      return true;
+    }
+  return false;
+}
+
+bool
+ApWifiMac::GetShortPreambleEnabled (void) const
+{
+  if (m_erpSupported || m_phy->GetShortPlcpPreambleSupported ())
+    {
+      for (std::list<Mac48Address>::const_iterator i = m_nonErpStations.begin (); i != m_nonErpStations.end (); i++)
+      {
+        if (m_stationManager->GetShortPreambleSupported (*i) == false)
+          {
+            return false;
+          }
+      }
+      return true;
+    }
+  return false;
 }
 
 void
@@ -654,10 +695,10 @@ ApWifiMac::GetSupportedRates (void) const
 {
   NS_LOG_FUNCTION (this);
   SupportedRates rates;
-  //If it is an HT-AP then add the BSSMembershipSelectorSet
-  //which only includes 127 for HT now. The standard says that the BSSMembershipSelectorSet
+  //If it is an HT-AP or VHT-AP, then add the BSSMembershipSelectorSet
+  //The standard says that the BSSMembershipSelectorSet
   //must have its MSB set to 1 (must be treated as a Basic Rate)
-  //Also the standard mentioned that at leat 1 element should be included in the SupportedRates the rest can be in the ExtendedSupportedRates
+  //Also the standard mentioned that at least 1 element should be included in the SupportedRates the rest can be in the ExtendedSupportedRates
   if (m_htSupported || m_vhtSupported)
     {
       for (uint32_t i = 0; i < m_phy->GetNBssMembershipSelectors (); i++)
@@ -787,9 +828,17 @@ ApWifiMac::SendProbeResp (Mac48Address to)
   probe.SetSsid (GetSsid ());
   probe.SetSupportedRates (GetSupportedRates ());
   probe.SetBeaconIntervalUs (m_beaconInterval.GetMicroSeconds ());
+  probe.SetCapabilities (GetCapabilities ());
+  m_stationManager->SetShortPreambleEnabled (GetShortPreambleEnabled ());
+  m_stationManager->SetShortSlotTimeEnabled (GetShortSlotTimeEnabled ());
+  if (m_erpSupported)
+    {
+      probe.SetErpInformation (GetErpInformation ());
+    }
   if (m_htSupported || m_vhtSupported)
     {
       probe.SetHtCapabilities (GetHtCapabilities ());
+      probe.SetHtOperations (GetHtOperations ());
       hdr.SetNoOrder ();
     }
   if (m_vhtSupported)
@@ -831,6 +880,7 @@ ApWifiMac::SendAssocResp (Mac48Address to, bool success, uint8_t staType)
   if (success)
     {
       code.SetSuccess ();
+      m_staList.push_back (to);
     }
   else
     {
@@ -838,10 +888,15 @@ ApWifiMac::SendAssocResp (Mac48Address to, bool success, uint8_t staType)
     }
   assoc.SetSupportedRates (GetSupportedRates ());
   assoc.SetStatusCode (code);
-
+  assoc.SetCapabilities (GetCapabilities ());
+  if (m_erpSupported)
+    {
+      assoc.SetErpInformation (GetErpInformation ());
+    }
   if (m_htSupported || m_vhtSupported)
     {
       assoc.SetHtCapabilities (GetHtCapabilities ());
+      assoc.SetHtOperations (GetHtOperations ());
       hdr.SetNoOrder ();
     }
     //NS_LOG_UNCOND ("ApWifiMac::SendAssocResp =" );
@@ -1383,6 +1438,23 @@ ApWifiMac::SendOneBeacon (void)
       m_beaconDca->Queue (packet, hdr);
       }
   m_beaconEvent = Simulator::Schedule (m_beaconInterval, &ApWifiMac::SendOneBeacon, this);
+  
+  //If a STA that does not support Short Slot Time associates,
+  //the AP shall use long slot time beginning at the first Beacon
+  //subsequent to the association of the long slot time STA.
+  if (m_erpSupported)
+    {
+    if (GetShortSlotTimeEnabled () == true)
+      {
+        //Enable short slot time
+        SetSlot (MicroSeconds (9));
+      }
+    else
+      {
+        //Disable short slot time
+        SetSlot (MicroSeconds (20));
+      }
+    }
 }
 
 void ApWifiMac::OnRAWSlotStart(uint16_t rps, uint8_t rawGroup, uint8_t slot)
@@ -1586,7 +1658,8 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   for (uint32_t j = 0; j < m_phy->GetNModes (); j++)
                     {
                       WifiMode mode = m_phy->GetMode (j);
-                      if (rates.IsSupportedRate (mode.GetDataRate (m_phy->GetChannelWidth (), false, 1)))
+                      uint8_t nss = 1; // Assume 1 spatial stream in basic mode
+                      if (rates.IsSupportedRate (mode.GetDataRate (m_phy->GetChannelWidth (), false, nss)))
                         {
                           m_stationManager->AddSupportedMode (from, mode);
                         }
@@ -1594,7 +1667,7 @@ ApWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                   if (m_htSupported)
                     {
                       HtCapabilities htcapabilities = assocReq.GetHtCapabilities ();
-                      m_stationManager->AddStationHtCapabilities (from,htcapabilities);
+                      m_stationManager->AddStationHtCapabilities (from, htcapabilities);
                       for (uint32_t j = 0; j < m_phy->GetNMcs (); j++)
                         {
                           WifiMode mcs = m_phy->GetMcs (j);
@@ -1719,6 +1792,14 @@ ApWifiMac::DoInitialize (void)
   m_edca.find(AC_BK)->second->GetEdcaQueue()->TraceConnect("PacketDropped", "",MakeCallback(&ApWifiMac::OnQueuePacketDropped, this));
 
   RegularWifiMac::DoInitialize ();
+}
+
+bool
+ApWifiMac::GetUseNonErpProtection (void) const
+{
+  bool useProtection = !m_nonErpStations.empty () && m_enableNonErpProtection;
+  m_stationManager->SetUseNonErpProtection (useProtection);
+  return useProtection;
 }
 
 } //namespace ns3

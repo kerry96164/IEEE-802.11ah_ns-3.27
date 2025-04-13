@@ -1,0 +1,206 @@
+--- src/wifi/model/regular-wifi-mac.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/regular-wifi-mac.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -918,59 +1175,162 @@
+     .SetParent<WifiMac> ()
+     .SetGroupName ("Wifi")
+     .AddAttribute ("QosSupported",
+-                   "This Boolean attribute is set to enable 802.11e/WMM-style QoS support at this STA",
++                   "This Boolean attribute is set to enable 802.11e/WMM-style QoS support at this STA.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&RegularWifiMac::SetQosSupported,
+                                         &RegularWifiMac::GetQosSupported),
+                    MakeBooleanChecker ())
+     .AddAttribute ("HtSupported",
+-                   "This Boolean attribute is set to enable 802.11n support at this STA",
++                   "This Boolean attribute is set to enable 802.11n support at this STA.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&RegularWifiMac::SetHtSupported,
+                                         &RegularWifiMac::GetHtSupported),
+                    MakeBooleanChecker ())
+     .AddAttribute ("VhtSupported",
+-                   "This Boolean attribute is set to enable 802.11ac support at this STA",
++                   "This Boolean attribute is set to enable 802.11ac support at this STA.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&RegularWifiMac::SetVhtSupported,
+                                         &RegularWifiMac::GetVhtSupported),
+                    MakeBooleanChecker ())
+     .AddAttribute ("CtsToSelfSupported",
+-                   "Use CTS to Self when using a rate that is not in the basic set rate",
++                   "Use CTS to Self when using a rate that is not in the basic rate set.",
+                    BooleanValue (false),
+                    MakeBooleanAccessor (&RegularWifiMac::SetCtsToSelfSupported,
+                                         &RegularWifiMac::GetCtsToSelfSupported),
+                    MakeBooleanChecker ())
+-    .AddAttribute ("DcaTxop", "The DcaTxop object",
++    .AddAttribute ("VO_MaxAmsduSize",
++                   "Maximum length in bytes of an A-MSDU for AC_VO access class.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetVoMaxAmsduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("VI_MaxAmsduSize",
++                   "Maximum length in bytes of an A-MSDU for AC_VI access class.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetViMaxAmsduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("BE_MaxAmsduSize",
++                   "Maximum length in bytes of an A-MSDU for AC_BE access class.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBeMaxAmsduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("BK_MaxAmsduSize",
++                   "Maximum length in bytes of an A-MSDU for AC_BK access class.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBkMaxAmsduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("VO_MaxAmpduSize",
++                   "Maximum length in bytes of an A-MPDU for AC_VO access class.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetVoMaxAmpduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("VI_MaxAmpduSize",
++                   "Maximum length in bytes of an A-MPDU for AC_VI access class.",
++                   UintegerValue (65535),
++                   MakeUintegerAccessor (&RegularWifiMac::SetViMaxAmpduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("BE_MaxAmpduSize",
++                   "Maximum length in bytes of an A-MPDU for AC_BE access class.",
++                   UintegerValue (65535),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBeMaxAmpduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("BK_MaxAmpduSize",
++                   "Maximum length in bytes of an A-MPDU for AC_BK access class.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBkMaxAmpduSize),
++                   MakeUintegerChecker<uint32_t> ())
++    .AddAttribute ("VO_BlockAckThreshold",
++                   "If number of packets in VO queue reaches this value, "
++                   "block ack mechanism is used. If this value is 0, block ack is never used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetVoBlockAckThreshold),
++                   MakeUintegerChecker<uint8_t> (0, 64))
++    .AddAttribute ("VI_BlockAckThreshold",
++                   "If number of packets in VI queue reaches this value, "
++                   "block ack mechanism is used. If this value is 0, block ack is never used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetViBlockAckThreshold),
++                   MakeUintegerChecker<uint8_t> (0, 64))
++    .AddAttribute ("BE_BlockAckThreshold",
++                   "If number of packets in BE queue reaches this value, "
++                   "block ack mechanism is used. If this value is 0, block ack is never used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBeBlockAckThreshold),
++                   MakeUintegerChecker<uint8_t> (0, 64))
++    .AddAttribute ("BK_BlockAckThreshold",
++                   "If number of packets in BK queue reaches this value, "
++                   "block ack mechanism is used. If this value is 0, block ack is never used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBkBlockAckThreshold),
++                   MakeUintegerChecker<uint8_t> (0, 64))
++    .AddAttribute ("VO_BlockAckInactivityTimeout",
++                   "Represents max time (blocks of 1024 micro seconds) allowed for block ack"
++                   "inactivity for AC_VO. If this value isn't equal to 0 a timer start after that a"
++                   "block ack setup is completed and will be reset every time that a block ack"
++                   "frame is received. If this value is 0, block ack inactivity timeout won't be used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetVoBlockAckInactivityTimeout),
++                   MakeUintegerChecker<uint16_t> ())
++    .AddAttribute ("VI_BlockAckInactivityTimeout",
++                   "Represents max time (blocks of 1024 micro seconds) allowed for block ack"
++                   "inactivity for AC_VI. If this value isn't equal to 0 a timer start after that a"
++                   "block ack setup is completed and will be reset every time that a block ack"
++                   "frame is received. If this value is 0, block ack inactivity timeout won't be used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetViBlockAckInactivityTimeout),
++                   MakeUintegerChecker<uint16_t> ())
++    .AddAttribute ("BE_BlockAckInactivityTimeout",
++                   "Represents max time (blocks of 1024 micro seconds) allowed for block ack"
++                   "inactivity for AC_BE. If this value isn't equal to 0 a timer start after that a"
++                   "block ack setup is completed and will be reset every time that a block ack"
++                   "frame is received. If this value is 0, block ack inactivity timeout won't be used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBeBlockAckInactivityTimeout),
++                   MakeUintegerChecker<uint16_t> ())
++    .AddAttribute ("BK_BlockAckInactivityTimeout",
++                   "Represents max time (blocks of 1024 micro seconds) allowed for block ack"
++                   "inactivity for AC_BK. If this value isn't equal to 0 a timer start after that a"
++                   "block ack setup is completed and will be reset every time that a block ack"
++                   "frame is received. If this value is 0, block ack inactivity timeout won't be used.",
++                   UintegerValue (0),
++                   MakeUintegerAccessor (&RegularWifiMac::SetBkBlockAckInactivityTimeout),
++                   MakeUintegerChecker<uint16_t> ())
++    .AddAttribute ("ShortSlotTimeSupported",
++                   "Whether or not short slot time is supported (only used by ERP APs or STAs).",
++                   BooleanValue (true),
++                   MakeBooleanAccessor (&WifiMac::GetShortSlotTimeSupported,
++                                        &WifiMac::SetShortSlotTimeSupported),
++                   MakeBooleanChecker ())
++    .AddAttribute ("DcaTxop",
++                   "The DcaTxop object.",
+                    PointerValue (),
+                    MakePointerAccessor (&RegularWifiMac::GetDcaTxop),
+                    MakePointerChecker<DcaTxop> ())
+     .AddAttribute ("VO_EdcaTxopN",
+-                   "Queue that manages packets belonging to AC_VO access class",
++                   "Queue that manages packets belonging to AC_VO access class.",
+                    PointerValue (),
+                    MakePointerAccessor (&RegularWifiMac::GetVOQueue),
+                    MakePointerChecker<EdcaTxopN> ())
+     .AddAttribute ("VI_EdcaTxopN",
+-                   "Queue that manages packets belonging to AC_VI access class",
++                   "Queue that manages packets belonging to AC_VI access class.",
+                    PointerValue (),
+                    MakePointerAccessor (&RegularWifiMac::GetVIQueue),
+                    MakePointerChecker<EdcaTxopN> ())
+     .AddAttribute ("BE_EdcaTxopN",
+-                   "Queue that manages packets belonging to AC_BE access class",
++                   "Queue that manages packets belonging to AC_BE access class.",
+                    PointerValue (),
+                    MakePointerAccessor (&RegularWifiMac::GetBEQueue),
+                    MakePointerChecker<EdcaTxopN> ())
+     .AddAttribute ("BK_EdcaTxopN",
+-                   "Queue that manages packets belonging to AC_BK access class",
++                   "Queue that manages packets belonging to AC_BK access class.",
+                    PointerValue (),
+                    MakePointerAccessor (&RegularWifiMac::GetBKQueue),
+                    MakePointerChecker<EdcaTxopN> ())
+     .AddTraceSource ("TxOkHeader",
+-                     "The header of successfully transmitted packet",
++                     "The header of successfully transmitted packet.",
+                      MakeTraceSourceAccessor (&RegularWifiMac::m_txOkCallback),
+                      "ns3::WifiMacHeader::TracedCallback")
+     .AddTraceSource ("TxErrHeader",
+-                     "The header of unsuccessfully transmitted packet",
++                     "The header of unsuccessfully transmitted packet.",
+                      MakeTraceSourceAccessor (&RegularWifiMac::m_txErrCallback),
+                      "ns3::WifiMacHeader::TracedCallback")
+   ;
+@@ -980,19 +1340,22 @@
+ void
+ RegularWifiMac::FinishConfigureStandard (enum WifiPhyStandard standard)
+ {
+-  uint32_t cwmin;
+-  uint32_t cwmax;
+-
++  NS_LOG_FUNCTION (this << standard);
++  uint32_t cwmin = 0;
++  uint32_t cwmax = 0;
+   switch (standard)
+     {
++    case WIFI_PHY_STANDARD_80211ac:
++      SetVhtSupported (true);
++    case WIFI_PHY_STANDARD_80211n_5GHZ:
++    case WIFI_PHY_STANDARD_80211n_2_4GHZ:
++      SetHtSupported (true);
++    case WIFI_PHY_STANDARD_80211g:
++      m_erpSupported = true;
+     case WIFI_PHY_STANDARD_holland:
+     case WIFI_PHY_STANDARD_80211a:
+-    case WIFI_PHY_STANDARD_80211g:
+     case WIFI_PHY_STANDARD_80211_10MHZ:
+     case WIFI_PHY_STANDARD_80211_5MHZ:
+-    case WIFI_PHY_STANDARD_80211n_5GHZ:
+-    case WIFI_PHY_STANDARD_80211n_2_4GHZ:
+-    case WIFI_PHY_STANDARD_80211ac:
+       cwmin = 15;
+       cwmax = 1023;
+       break;

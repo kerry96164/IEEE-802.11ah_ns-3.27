@@ -1,0 +1,27 @@
+--- src/wifi/model/wifi-mac-header.cc	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/wifi-mac-header.cc	2016-03-23 21:36:53.000000000 -0700
+@@ -37,13 +38,13 @@
+ 
+ enum
+ {
++  //Reserved: 0 - 6
++  SUBTYPE_CTL_CTLWRAPPER = 7,
+   SUBTYPE_CTL_BACKREQ = 8,
+   SUBTYPE_CTL_BACKRESP = 9,
+   SUBTYPE_CTL_RTS = 11,
+   SUBTYPE_CTL_CTS = 12,
+-  SUBTYPE_CTL_ACK = 13,
+-  SUBTYPE_CTL_CTLWRAPPER = 7
+-
++  SUBTYPE_CTL_ACK = 13
+ };
+ 
+ WifiMacHeader::WifiMacHeader ()
+@@ -257,7 +259,6 @@
+       m_ctrlType = TYPE_MGT;
+       m_ctrlSubtype = 15;
+       break;
+-
+     case WIFI_MAC_DATA:
+       m_ctrlType = TYPE_DATA;
+       m_ctrlSubtype = 0;

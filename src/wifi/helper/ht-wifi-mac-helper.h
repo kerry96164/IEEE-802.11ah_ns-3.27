@@ -26,6 +26,10 @@
 #include "qos-wifi-mac-helper.h"
 #include <map>
 
+/**
+ * (Deprecated) ns3::HtWifiMacHelper declaration.
+ */
+
 namespace ns3 {
 
 /**

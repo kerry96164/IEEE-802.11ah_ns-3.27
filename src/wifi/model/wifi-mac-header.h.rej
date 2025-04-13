@@ -1,0 +1,17 @@
+--- src/wifi/model/wifi-mac-header.h	2015-09-23 12:28:42.000000000 -0700
++++ src/wifi/model/wifi-mac-header.h	2016-03-23 21:36:53.000000000 -0700
+@@ -35,12 +36,12 @@
+  */
+ enum WifiMacType
+ {
+-  WIFI_MAC_CTL_RTS = 0,
++  WIFI_MAC_CTL_CTLWRAPPER = 0,
++  WIFI_MAC_CTL_RTS,
+   WIFI_MAC_CTL_CTS,
+   WIFI_MAC_CTL_ACK,
+   WIFI_MAC_CTL_BACKREQ,
+   WIFI_MAC_CTL_BACKRESP,
+-  WIFI_MAC_CTL_CTLWRAPPER,
+ 
+   WIFI_MAC_MGT_BEACON,
+   WIFI_MAC_MGT_ASSOCIATION_REQUEST,

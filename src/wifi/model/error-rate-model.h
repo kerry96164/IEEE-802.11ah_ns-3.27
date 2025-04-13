@@ -37,12 +37,12 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * \param txMode a specific transmission mode
+   * \param txVector a specific transmission vector including WifiMode
    * \param ber a target ber
    *
    * \return the snr which corresponds to the requested ber
    */
-  double CalculateSnr (WifiMode txMode, double ber) const;
+  double CalculateSnr (WifiTxVector txVector, double ber) const;
 
   /**
    * A pure virtual method that must be implemented in the subclass.
