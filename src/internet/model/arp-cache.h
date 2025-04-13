@@ -39,7 +39,6 @@ namespace ns3 {
 
 class NetDevice;
 class Ipv4Interface;
-class Ipv4Header;
 
 /**
  * \ingroup arp
@@ -169,11 +168,6 @@ public:
   void PrintArpCache (Ptr<OutputStreamWrapper> stream);
 
   /**
-   * \brief Pair of a packet and an Ipv4 header.
-   */
-  typedef std::pair<Ptr<Packet>, Ipv4Header> Ipv4PayloadHeaderPair;
-
-  /**
    * \brief A record that that holds information about an ArpCache entry
    */
   class Entry {
@@ -195,10 +189,7 @@ public:
     /**
      * \param waiting
      */
-    void MarkWaitReply (Ipv4PayloadHeaderPair waiting);
-
     void MarkWaitReply (Ptr<Packet> waiting);
-
     /**
      * \brief Changes the state of this entry to Permanent.
      *
@@ -209,7 +200,7 @@ public:
      * \param waiting
      * \return 
      */
-    bool UpdateWaitReply (Ipv4PayloadHeaderPair waiting);
+    bool UpdateWaitReply (Ptr<Packet> waiting);
     /**
      * \return True if the state of this entry is dead; false otherwise.
      */
@@ -253,7 +244,7 @@ public:
      * \returns 0 is no packet is pending, the next packet to send if 
      *            packets are pending.
      */
-    Ipv4PayloadHeaderPair DequeuePending (void);
+    Ptr<Packet> DequeuePending (void);
     /**
      * \brief Clear the pending packet list
      */
@@ -299,7 +290,7 @@ private:
     Time m_lastSeen; //!< last moment a packet from that address has been seen
     Address m_macAddress; //!< entry's MAC address
     Ipv4Address m_ipv4Address; //!< entry's IP address
-    std::list<Ipv4PayloadHeaderPair> m_pending; //!< list of pending packets for the entry's IP
+    std::list<Ptr<Packet> > m_pending; //!< list of pending packets for the entry's IP
     uint32_t m_retries; //!< rerty counter
   };
 

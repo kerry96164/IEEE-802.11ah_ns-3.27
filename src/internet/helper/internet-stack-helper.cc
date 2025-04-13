@@ -169,13 +169,13 @@
 #include "ns3/ipv4-list-routing-helper.h"
 #include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/ipv6-list-routing-helper.h"
 #include "ns3/ipv6-static-routing-helper.h"
 #include "ns3/ipv6-extension.h"
 #include "ns3/ipv6-extension-demux.h"
 #include "ns3/ipv6-extension-header.h"
 #include "ns3/icmpv6-l4-protocol.h"
 #include "ns3/global-router-interface.h"
-#include "ns3/traffic-control-layer.h"
 #include <limits>
 #include <map>
 
@@ -250,11 +250,13 @@ InternetStackHelper::Initialize ()
   Ipv4StaticRoutingHelper staticRouting;
   Ipv4GlobalRoutingHelper globalRouting;
   Ipv4ListRoutingHelper listRouting;
+  Ipv6ListRoutingHelper listRoutingv6;
   Ipv6StaticRoutingHelper staticRoutingv6;
   listRouting.Add (staticRouting, 0);
   listRouting.Add (globalRouting, -10);
+  listRoutingv6.Add (staticRoutingv6, 0);
   SetRoutingHelper (listRouting);
-  SetRoutingHelper (staticRoutingv6);
+  SetRoutingHelper (listRoutingv6);
 }
 
 InternetStackHelper::~InternetStackHelper ()
@@ -474,7 +476,6 @@ InternetStackHelper::Install (Ptr<Node> node) const
 
   if (m_ipv4Enabled || m_ipv6Enabled)
     {
-      CreateAndAggregateObjectFromTypeId (node, "ns3::TrafficControlLayer");
       CreateAndAggregateObjectFromTypeId (node, "ns3::UdpL4Protocol");
       node->AggregateObject (m_tcpFactory.Create<Object> ());
       Ptr<PacketSocketFactory> factory = CreateObject<PacketSocketFactory> ();

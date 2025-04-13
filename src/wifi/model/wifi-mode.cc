@@ -345,7 +345,7 @@ WifiMode::GetCodeRate (uint8_t nss) const
   else if (item->modClass == WIFI_MOD_CLASS_S1G)
     {
       NS_ASSERT (nss <= 4);
-      NS_ASSERT (!(item->mcsValue == 10 && nss != 1)) //MCS 10 is only valid when NSS (Number of Spatial Streams) == 1
+      NS_ASSERT (!(item->mcsValue == 10 && nss != 1)); //MCS 10 is only valid when NSS (Number of Spatial Streams) == 1
       switch (item->mcsValue)
         {
         case 0:
@@ -426,7 +426,7 @@ WifiMode::GetConstellationSize (uint8_t nss) const
   else if (item->modClass == WIFI_MOD_CLASS_S1G)
     {
       NS_ASSERT (nss <= 4);
-      NS_ASSERT (!(item->mcsValue == 10 && nss != 1)) //MCS 10 is only valid when NSS (Number of Spatial Streams) == 1
+      NS_ASSERT (!(item->mcsValue == 10 && nss != 1)); //MCS 10 is only valid when NSS (Number of Spatial Streams) == 1
       switch (item->mcsValue)
         {
         case 0:

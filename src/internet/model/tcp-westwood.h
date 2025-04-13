@@ -33,16 +33,10 @@
 #ifndef TCP_WESTWOOD_H
 #define TCP_WESTWOOD_H
 
-#include "tcp-congestion-ops.h"
-#include "ns3/sequence-number.h"
-#include "ns3/traced-value.h"
+#include "tcp-socket-base.h"
+#include "ns3/packet.h"
 
 namespace ns3 {
-
-class Packet;
-class TcpHeader;
-class Time;
-class EventId;
 
 /**
  * \ingroup socket
@@ -63,9 +57,9 @@ class EventId;
  * and the EstimateBW (int, const, Time). The CountAck method calculates
  * the number of acknowledged segments on the receipt of an ACK.
  * The EstimateBW estimates the bandwidth based on the value returned by CountAck
- * and the sampling interval (last ACK inter-arrival time for Westwood and last RTT for Westwood+).
+ * and the sampling interval (last ACK inter-arrival time for Westwood and last RTT for Westwood+).   
  */
-class TcpWestwood : public TcpNewReno
+class TcpWestwood : public TcpSocketBase
 {
 public:
   /**
@@ -100,15 +94,36 @@ public:
     TUSTIN
   };
 
-  virtual uint32_t GetSsThresh (Ptr<const TcpSocketState> tcb,
-                                uint32_t bytesInFlight);
+protected:
+  virtual Ptr<TcpSocketBase> Fork (void); // Call CopyObject<TcpTahoe> to clone me
+  virtual void NewAck (SequenceNumber32 const& seq); // Inc cwnd and call NewAck() of parent
+  virtual void DupAck (const TcpHeader& t, uint32_t count);  // Treat 3 dupack as timeout
+  virtual void Retransmit (void); // Retransmit time out
 
-  virtual void PktsAcked (Ptr<TcpSocketState> tcb, uint32_t packetsAcked,
-                          const Time& rtt);
-
-  virtual Ptr<TcpCongestionOps> Fork ();
+  /**
+   * Process the newly received ACK
+   *
+   * \param packet the received ACK packet
+   * \param tcpHeader the header attached to the ACK packet
+   */  
+  virtual void ReceivedAck (Ptr<Packet> packet, const TcpHeader& tcpHeader);
+  
+  /**
+   * Estimate the RTT, record the minimum value,
+   * and run a clock on the RTT to trigger Westwood+ bandwidth sampling
+   * \param header the packet header
+   */
+  virtual void EstimateRtt (const TcpHeader& header);
 
 private:
+  /**
+   * Calculate the number of acknowledged packets upon the receipt of an ACK packet
+   *
+   * \param tcpHeader the header of the received ACK packet
+   * \return the number of ACKed packets
+   */
+  int CountAck (const TcpHeader& tcpHeader);
+
   /**
    * Update the total number of acknowledged packets during the current RTT
    *
@@ -119,16 +134,27 @@ private:
   /**
    * Estimate the network's bandwidth
    *
-   * \param acked the number of acknowledged packets
+   * \param acked the number of acknowledged packets returned by CountAck
+   * \param tcpHeader the header of the packet
    * \param rtt the RTT estimation
    */
-  void EstimateBW (const Time& rtt, Ptr<TcpSocketState> tcb);
+  void EstimateBW (int acked, const TcpHeader& tcpHeader, Time rtt);
+
+  /**
+   * Tustin filter
+   */
+  void Filtering (void);
 
 protected:
+  bool                   m_inFastRec;              //!< Currently in fast recovery if TRUE
+
   TracedValue<double>    m_currentBW;              //!< Current value of the estimated BW
   double                 m_lastSampleBW;           //!< Last bandwidth sample
   double                 m_lastBW;                 //!< Last bandwidth sample after being filtered
   Time                   m_minRtt;                 //!< Minimum RTT
+  double                 m_lastAck;                //!< The time last ACK was received
+  SequenceNumber32       m_prevAckNo;              //!< Previously received ACK number
+  int                    m_accountedFor;           //!< The number of received DUPACKs
   enum ProtocolType      m_pType;                  //!< 0 for Westwood, 1 for Westwood+
   enum FilterType        m_fType;                  //!< 0 for none, 1 for Tustin
 

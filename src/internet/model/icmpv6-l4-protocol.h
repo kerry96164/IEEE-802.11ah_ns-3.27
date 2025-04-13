@@ -30,7 +30,6 @@
 
 #include "icmpv6-header.h"
 #include "ip-l4-protocol.h"
-#include "ndisc-cache.h"
 
 namespace ns3 {
 
@@ -38,6 +37,7 @@ class NetDevice;
 class Node;
 class Packet;
 class TraceContext;
+class NdiscCache;
 
 /**
  * \class Icmpv6L4Protocol
@@ -301,7 +301,7 @@ public:
    * \param hardwareAddress our mac address
    * \return NS packet (with IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeNS (Ipv6Address src, Ipv6Address dst, Ipv6Address target, Address hardwareAddress);
+  Ptr<Packet> ForgeNS (Ipv6Address src, Ipv6Address dst, Ipv6Address target, Address hardwareAddress);
 
   /**
    * \brief Forge a Neighbor Advertisement.
@@ -311,7 +311,7 @@ public:
    * \param flags flags (bitfield => R (4), S (2), O (1))
    * \return NA packet (with IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeNA (Ipv6Address src, Ipv6Address dst, Address* hardwareAddress, uint8_t flags);
+  Ptr<Packet> ForgeNA (Ipv6Address src, Ipv6Address dst, Address* hardwareAddress, uint8_t flags);
 
   /**
    * \brief Forge a Router Solicitation.
@@ -320,7 +320,7 @@ public:
    * \param hardwareAddress our mac address
    * \return RS packet (with IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeRS (Ipv6Address src, Ipv6Address dst, Address hardwareAddress);
+  Ptr<Packet> ForgeRS (Ipv6Address src, Ipv6Address dst, Address hardwareAddress);
 
   /**
    * \brief Forge an Echo Request.
@@ -331,7 +331,7 @@ public:
    * \param data the data
    * \return Echo Request packet (with IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeEchoRequest (Ipv6Address src, Ipv6Address dst, uint16_t id, uint16_t seq, Ptr<Packet> data);
+  Ptr<Packet> ForgeEchoRequest (Ipv6Address src, Ipv6Address dst, uint16_t id, uint16_t seq, Ptr<Packet> data);
 
   /**
    * \brief Receive method.
@@ -381,14 +381,13 @@ public:
    *
    * It also send NS request to target and store the waiting packet.
    * \param p the packet
-   * \param ipHeader IPv6 header
    * \param dst destination address
    * \param device device
    * \param cache the neighbor cache
    * \param hardwareDestination hardware address
    * \return true if the address is in the ND cache, the hardwareDestination is updated.
    */
-  bool Lookup (Ptr<Packet> p, const Ipv6Header & ipHeader, Ipv6Address dst, Ptr<NetDevice> device, Ptr<NdiscCache> cache, Address* hardwareDestination);
+  bool Lookup (Ptr<Packet> p, Ipv6Address dst, Ptr<NetDevice> device, Ptr<NdiscCache> cache, Address* hardwareDestination);
 
   /**
    * \brief Send a Router Solicitation.

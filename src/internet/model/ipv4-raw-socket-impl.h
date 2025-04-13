@@ -53,7 +53,6 @@ public:
   virtual int Bind ();
   virtual int Bind6 ();
   virtual int GetSockName (Address &address) const; 
-  virtual int GetPeerName (Address &address) const;
   virtual int Close (void);
   virtual int ShutdownSend (void);
   virtual int ShutdownRecv (void);
@@ -99,7 +98,7 @@ private:
     uint16_t fromProtocol;   /**< Protocol used */
   };
 
-  mutable enum Socket::SocketErrno m_err; //!< Last error number.
+  enum Socket::SocketErrno m_err;   //!< Last error number.
   Ptr<Node> m_node;                 //!< Node
   Ipv4Address m_src;                //!< Source address.
   Ipv4Address m_dst;                //!< Destination address.

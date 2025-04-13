@@ -119,7 +119,7 @@ NscTcpSocketImpl::NscTcpSocketImpl(const NscTcpSocketImpl& sock)
     m_initialSsThresh (sock.m_initialSsThresh),
     m_lastMeasuredRtt (Seconds (0.0)),
     m_cnTimeout (sock.m_cnTimeout),
-    m_synRetries (sock.m_synRetries),
+    m_cnCount (sock.m_cnCount),
     m_rxAvailable (0),
     m_nscTcpSocket (0),
     m_sndBufSize (sock.m_sndBufSize)
@@ -480,21 +480,6 @@ NscTcpSocketImpl::GetSockName (Address &address) const
   return 0;
 }
 
-int
-NscTcpSocketImpl::GetPeerName (Address &address) const
-{
-  NS_LOG_FUNCTION (this << address);
-
-  if (!m_endPoint)
-    {
-      m_errno = ERROR_NOTCONN;
-      return -1;
-    }
-  address = InetSocketAddress (m_endPoint->GetPeerAddress (),
-                               m_endPoint->GetPeerPort ());
-  return 0;
-}
-
 uint32_t
 NscTcpSocketImpl::GetRxAvailable (void) const
 {
@@ -793,35 +778,21 @@ NscTcpSocketImpl::GetConnTimeout (void) const
 }
 
 void 
-NscTcpSocketImpl::SetSynRetries (uint32_t count)
+NscTcpSocketImpl::SetConnCount (uint32_t count)
 {
-  m_synRetries = count;
+  m_cnCount = count;
 }
 
 uint32_t 
-NscTcpSocketImpl::GetSynRetries (void) const
+NscTcpSocketImpl::GetConnCount (void) const
 {
-  return m_synRetries;
+  return m_cnCount;
 }
 
 void 
 NscTcpSocketImpl::SetDelAckTimeout (Time timeout)
 {
   m_delAckTimeout = timeout;
-}
-
-void
-NscTcpSocketImpl::SetDataRetries (uint32_t retries)
-{
-  NS_LOG_FUNCTION (this << retries);
-  m_dataRetries = retries;
-}
-
-uint32_t
-NscTcpSocketImpl::GetDataRetries (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_dataRetries;
 }
 
 Time

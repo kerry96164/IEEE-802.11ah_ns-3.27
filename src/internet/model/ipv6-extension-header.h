@@ -111,17 +111,16 @@ public:
    */
   virtual uint32_t Deserialize (Buffer::Iterator start);
 
-protected:
-  /**
-   * \brief The "length" field.
-   */
-  uint8_t m_length;
-
 private:
   /**
    * \brief The "next header" field.
    */
   uint8_t m_nextHeader;
+
+  /**
+   * \brief The "length" field.
+   */
+  uint8_t m_length;
 
   /**
    * \brief The data of the extension.
