@@ -1,3 +1,6 @@
+### 根據 [ns-3](https://www.nsnam.org/releases/) 版本間提供的patch，將版本從ns-3.23升至ns-3.27。
+目前更新至 ns-3.24.1，更新範圍龐大，也需更新 [IEEE-802.11ah-ns-3](https://github.com/imec-idlab/IEEE-802.11ah-ns-3) 所增加的 function。
+
 If you use our work, you can use the following citation to refer to it:
 > Le Tian, Amina Sljivo, Serena Santi, Eli De Poorter, Jeroen Hoebeke, Jeroen Famaey. **Extension of the IEEE 802.11ah NS-3 Simulation Module.** Workshop on ns-3 (WNS3), 2018.
 
